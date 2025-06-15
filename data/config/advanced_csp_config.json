@@ -1,0 +1,40 @@
+{
+  "exchange_parent_mappings": {
+    "1-6": "1-1",
+    "1-7": "1-2",
+    "2-6": "2-3",
+    "2-7": "2-2",
+    "3-6": "3-3",
+    "3-7": "3-2"
+  },
+  "grade5_classes": ["1-5", "2-5", "3-5"],
+  "fixed_subjects": ["欠", "YT", "道", "道徳", "学", "学活", "学総", "総", "総合", "行"],
+  "jiritsu_subjects": ["自立", "日生", "生単", "作業"],
+  "parent_subjects_for_jiritsu": ["数", "英"],
+  "main_subjects": ["国", "数", "英", "理", "社"],
+  "skill_subjects": ["音", "美", "技", "家"],
+  "excluded_sync_subjects": ["保", "保健体育"],
+  "weekdays": ["月", "火", "水", "木", "金"],
+  "periods": {
+    "min": 1,
+    "max": 6
+  },
+  "special_constraints": {
+    "monday_period_6": "欠",
+    "yt_days": {
+      "火": 6,
+      "水": 6,
+      "金": 6
+    }
+  },
+  "subject_preferences": {
+    "pe_preferred_day": "火",
+    "main_subjects_preferred_periods": [1, 2, 3],
+    "skill_subjects_preferred_periods": [4, 5, 6]
+  },
+  "optimization": {
+    "max_iterations": 100,
+    "swap_attempts": 21,
+    "temperature": 0.1
+  }
+}

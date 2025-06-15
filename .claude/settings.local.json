@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(timeout:*)",
+      "Bash(cp:*)",
+      "Bash(rm:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(awk:*)",
+      "Bash(touch:*)",
+      "Bash(mv:*)",
+      "Bash(python -m tests:*)",
+      "Bash(python -m pytest tests/test_csp_refactoring.py -v)",
+      "Bash(cut:*)",
+      "Bash(mkdir:*)",
+      "Bash(# 分析系スクリプトを移動\nmv analyze_detailed.py analyze_gym_violations.py analyze_timetable.py gym_usage_analysis.py trace_pe_placement.py scripts/analysis/\n\n# チェック系スクリプトを移動\nmv check_*.py debug_gym_constraint.py scripts/checks/\n\n# 修正系スクリプトを移動\nmv fix_gym_sync.py scripts/fixes/\n\n# テストファイルを移動\nmv test_*.py tests/\n\n# ドキュメントを移動\nmv gym_constraint_analysis.md refactoring_plan.md docs/)",
+      "Bash(ln:*)",
+      "Bash(md5sum:*)",
+      "Bash(diff:*)",
+      "Bash(tree:*)",
+      "Bash(true)",
+      "Bash(chmod:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "grade5_team_teaching": {
+    "description": "Grade 5 (5組) uses team-teaching where one teacher handles all three Grade 5 classes simultaneously",
+    "team_teaching_teachers": [
+      "金子み",
+      "寺田",
+      "梶永",
+      "北",
+      "井野口",
+      "蒲地",
+      "野口",
+      "塚本",
+      "青井",
+      "井上",
+      "森山",
+      "金子ひ",
+      "智田",
+      "白石",
+      "永山",
+      "財津",
+      "林",
+      "箱崎",
+      "林田"
+    ],
+    "flexible_subjects": {
+      "国": {
+        "teachers": ["寺田", "金子み"],
+        "note": "Either teacher can teach Grade 5 Japanese classes"
+      }
+    }
+  },
+  "special_support_classes": {
+    "description": "Special support classes (5組, 6組, 7組) can have jiritsu activities together",
+    "class_homeroom_teachers": {
+      "5": "金子み",
+      "6": "財津",
+      "7": "智田"
+    },
+    "jiritsu_team_teaching": {
+      "5": {
+        "teacher": "金子み",
+        "classes": ["1-5", "2-5", "3-5"],
+        "note": "Can teach 1-3 Grade 5 classes simultaneously for jiritsu"
+      },
+      "6": {
+        "teacher": "財津",
+        "classes": ["1-6", "2-6", "3-6"],
+        "note": "Can teach 1-3 Grade 6 classes simultaneously for jiritsu"
+      },
+      "7": {
+        "teacher": "智田",
+        "classes": ["1-7", "2-7", "3-7"],
+        "note": "Can teach 1-3 Grade 7 classes simultaneously for jiritsu"
+      }
+    },
+    "pe_together": {
+      "5": {
+        "classes": ["1-5", "2-5", "3-5"],
+        "note": "Grade 5 classes have PE together due to small class sizes"
+      }
+    }
+  },
+  "simultaneous_classes": [
+    {
+      "teacher": "YT担当",
+      "description": "Morning reading (朝読書) - all classes"
+    },
+    {
+      "teacher": "道担当",
+      "description": "Moral education (道徳) - all classes"
+    },
+    {
+      "teacher": "欠課",
+      "description": "Absence period - all classes"
+    }
+  ]
+}
