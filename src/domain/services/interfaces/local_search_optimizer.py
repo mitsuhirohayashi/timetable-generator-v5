@@ -1,6 +1,6 @@
-"""局所探索最適化のインターフェース"""
+"""ローカルサーチ最適化のインターフェース"""
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List, Optional
 from dataclasses import dataclass
 
 from ...entities.schedule import Schedule
@@ -17,27 +17,26 @@ class OptimizationResult:
     swap_attempts: int
     swap_successes: int
     improvement_percentage: float
+    
+    def __repr__(self) -> str:
+        return (f"OptimizationResult(改善: {self.initial_score:.2f} -> {self.final_score:.2f}, "
+                f"改善率: {self.improvement_percentage:.1f}%, "
+                f"反復: {self.iterations_performed}, 交換成功: {self.swap_successes}/{self.swap_attempts})")
 
 
 class LocalSearchOptimizer(ABC):
-    """局所探索最適化のインターフェース
-    
-    責務:
-    - ランダムな授業交換による改善
-    - 制約違反の解消
-    - 教員負荷の平準化
-    """
+    """ローカルサーチ最適化のインターフェース"""
     
     @abstractmethod
     def optimize(self, schedule: Schedule, school: School,
                 jiritsu_requirements: List[JiritsuRequirement],
-                max_iterations: int) -> OptimizationResult:
-        """局所探索による最適化を実行
+                max_iterations: int = 200) -> OptimizationResult:
+        """スケジュールを最適化
         
         Args:
-            schedule: スケジュール
+            schedule: 最適化対象のスケジュール
             school: 学校情報
-            jiritsu_requirements: 自立活動要件のリスト
+            jiritsu_requirements: 自立活動要件
             max_iterations: 最大反復回数
             
         Returns:
@@ -46,45 +45,29 @@ class LocalSearchOptimizer(ABC):
         pass
     
     @abstractmethod
-    def try_swap(self, schedule: Schedule, school: School,
-                jiritsu_requirements: List[JiritsuRequirement]) -> bool:
-        """ランダムな交換を試みる
+    def find_swap_candidates(self, schedule: Schedule, school: School) -> List[tuple]:
+        """交換候補を見つける
         
         Args:
-            schedule: スケジュール
+            schedule: 現在のスケジュール
             school: 学校情報
-            jiritsu_requirements: 自立活動要件のリスト
             
         Returns:
-            交換が成功した場合True
+            交換候補のリスト（タプルのリスト）
         """
         pass
     
     @abstractmethod
-    def select_swap_candidates(self, schedule: Schedule) -> Tuple[Tuple, Tuple]:
-        """交換候補を選択
-        
-        Args:
-            schedule: スケジュール
-            
-        Returns:
-            交換候補のペア（スロット1, 割り当て1）、（スロット2, 割り当て2）
-        """
-        pass
-    
-    @abstractmethod
-    def evaluate_swap(self, schedule: Schedule, school: School,
-                     jiritsu_requirements: List[JiritsuRequirement],
-                     before_score: float) -> bool:
+    def evaluate_swap(self, schedule: Schedule, school: School, 
+                     swap_candidate: tuple) -> float:
         """交換の評価
         
         Args:
-            schedule: スケジュール
+            schedule: 現在のスケジュール
             school: 学校情報
-            jiritsu_requirements: 自立活動要件のリスト
-            before_score: 交換前のスコア
+            swap_candidate: 交換候補
             
         Returns:
-            交換を受け入れる場合True
+            交換後のスコア改善量（正の値が改善）
         """
         pass

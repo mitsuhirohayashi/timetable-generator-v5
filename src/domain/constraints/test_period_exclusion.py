@@ -1,142 +1,84 @@
-"""テスト期間保護制約 - 元の科目を保持したまま変更を防ぐ"""
-import logging
-from typing import List, Dict, Set, Tuple
+"""テスト期間除外制約
 
-from .base import Constraint, ConstraintType, ConstraintPriority
+テスト期間中の教科変更を禁止する制約です。
+"""
+import logging
+from typing import Dict, List, Optional, Set, Tuple
 from ..entities.schedule import Schedule
 from ..entities.school import School
-from ..value_objects.time_slot import TimeSlot
+from ..value_objects.time_slot import TimeSlot, ClassReference
 from ..value_objects.assignment import Assignment
+from .base import Constraint, ConstraintViolation
 
 
-class TestPeriodProtectionConstraint(Constraint):
-    """テスト期間保護制約
+class TestPeriodExclusionConstraint(Constraint):
+    """テスト期間除外制約
     
-    テスト期間中のスロットを保護し、元の科目を保持したまま変更を防ぐ。
-    これにより、テスト期間中でも各クラスの通常の時間割が表示される。
+    テスト期間として指定されたスロットの教科を保護し、
+    変更を禁止します。
     """
     
-    def __init__(self, test_periods: List[Tuple[TimeSlot, str]]):
+    def __init__(self, test_periods: Dict[Tuple[str, int], str]):
         """初期化
         
         Args:
-            test_periods: テスト期間のリスト [(TimeSlot, 説明)]
+            test_periods: テスト期間の情報
+                         {(曜日, 校時): "説明"} の形式
         """
         super().__init__(
-            constraint_type=ConstraintType.HARD,
-            priority=ConstraintPriority.CRITICAL,
-            name="テスト期間保護",
-            description="テスト期間中の科目を保護し、変更を防ぐ"
+            name="テスト期間除外制約",
+            description="テスト期間中の教科変更を禁止"
         )
         self.test_periods = test_periods
-        self.test_slots: Set[TimeSlot] = {ts for ts, _ in test_periods}
         self.logger = logging.getLogger(__name__)
         
-        # テスト期間情報をログ出力
-        if self.test_periods:
-            self.logger.info(f"テスト期間保護制約を初期化: {len(self.test_periods)}スロット")
-            for time_slot, desc in self.test_periods[:3]:  # 最初の3件を表示
-                self.logger.debug(f"  - {time_slot}: {desc}")
+        # テスト期間のスロットをセットに変換（高速検索用）
+        self.test_slots: Set[Tuple[str, int]] = set(test_periods.keys())
     
-    def is_satisfied(self, schedule: Schedule, school: School) -> bool:
-        """制約が満たされているかチェック
+    def check(self, schedule: Schedule, school: School, 
+              time_slot: Optional[TimeSlot] = None,
+              assignment: Optional[Assignment] = None) -> List[ConstraintViolation]:
+        """制約をチェック
         
-        テスト期間のスロットがロックされているかを確認する。
-        """
-        if not self.test_slots:
-            return True
-        
-        for time_slot in self.test_slots:
-            # 5組以外の全クラスをチェック
-            for class_ref in school.get_all_classes():
-                if class_ref.class_number == 5:  # 5組はスキップ
-                    continue
-                
-                # スロットがロックされているか確認
-                if not schedule.is_locked(time_slot, class_ref):
-                    return False
-        
-        return True
-    
-    def get_violations(self, schedule: Schedule, school: School) -> List[Dict]:
-        """制約違反を検出
-        
-        ロックされていないテスト期間スロットを違反として報告。
+        テスト期間のスロットに配置しようとしている場合、
+        既存の割り当てと異なる場合は違反とする。
         """
         violations = []
         
-        if not self.test_slots:
-            return violations
-        
-        for time_slot in self.test_slots:
-            # 5組以外の全クラスをチェック
-            for class_ref in school.get_all_classes():
-                if class_ref.class_number == 5:  # 5組はスキップ
-                    continue
+        # 特定のスロットと割り当てが指定されている場合
+        if time_slot and assignment:
+            # テスト期間かチェック
+            if (time_slot.day, time_slot.period) in self.test_slots:
+                # 既存の割り当てを取得
+                existing = schedule.get_assignment(time_slot, assignment.class_ref)
                 
-                # スロットがロックされていない場合は違反
-                if not schedule.is_locked(time_slot, class_ref):
-                    violations.append({
-                        'constraint': self.name,
-                        'type': self.type.value,
-                        'priority': self.priority.value,
-                        'time_slot': str(time_slot),
-                        'class_ref': str(class_ref),
-                        'message': f"{time_slot} {class_ref}のテスト期間スロットが保護されていません"
-                    })
+                # 既存の割り当てがあり、教科が異なる場合は違反
+                if existing and existing.subject != assignment.subject:
+                    violation = ConstraintViolation(
+                        constraint_name=self.name,
+                        description=(
+                            f"テスト期間違反: {time_slot}の{assignment.class_ref}は"
+                            f"テスト期間のため{existing.subject.name}から"
+                            f"{assignment.subject.name}への変更不可"
+                        ),
+                        time_slot=time_slot,
+                        class_ref=assignment.class_ref,
+                        subject=assignment.subject,
+                        teacher=assignment.teacher
+                    )
+                    violations.append(violation)
+        
+        # 全体チェックの場合
+        else:
+            # この制約は配置時のチェックのみ行う
+            pass
         
         return violations
     
-    def can_assign(self, schedule: Schedule, time_slot: TimeSlot, 
-                   assignment: Assignment, school: School) -> bool:
-        """割り当て可能かチェック
-        
-        テスト期間のスロットへの新規割り当てを防ぐ。
-        既存の割り当ての変更も防ぐ。
-        """
-        # 5組は制限なし
-        if assignment.class_ref.class_number == 5:
-            return True
-        
-        # テスト期間でない場合は制限なし
-        if time_slot not in self.test_slots:
-            return True
-        
-        # テスト期間の場合、既存の割り当てと同じかチェック
-        existing = schedule.get_assignment(time_slot, assignment.class_ref)
-        if existing:
-            # 既存の割り当てと同じ科目・教師の場合のみ許可
-            return (existing.subject == assignment.subject and 
-                    existing.teacher == assignment.teacher)
-        
-        # 新規割り当ては禁止
-        return False
+    def is_test_period(self, time_slot: TimeSlot) -> bool:
+        """指定されたスロットがテスト期間かどうか判定"""
+        return (time_slot.day, time_slot.period) in self.test_slots
     
-    def get_affected_slots(self) -> List[TimeSlot]:
-        """影響を受けるタイムスロットを返す"""
-        return list(self.test_slots)
-    
-    def validate(self, schedule: Schedule, school: School) -> 'ConstraintResult':
-        """スケジュール全体を検証"""
-        from ..value_objects.assignment import ConstraintViolation
-        from .base import ConstraintResult
-        
-        violations = []
-        violation_dicts = self.get_violations(schedule, school)
-        
-        for viol_dict in violation_dicts:
-            violation = ConstraintViolation(
-                constraint_name=self.name,
-                constraint_type=self.type,
-                priority=self.priority,
-                message=viol_dict['message'],
-                time_slot=viol_dict['time_slot'],
-                class_ref=viol_dict['class_ref']
-            )
-            violations.append(violation)
-        
-        return ConstraintResult(
-            constraint_name=self.name,
-            violations=violations,
-            message=f"{len(violations)}件のテスト期間保護違反" if violations else "OK"
-        )
+    def get_test_period_description(self, time_slot: TimeSlot) -> Optional[str]:
+        """テスト期間の説明を取得"""
+        return self.test_periods.get((time_slot.day, time_slot.period))

@@ -84,6 +84,10 @@ class SmartEmptySlotFiller:
         # 禁止セル情報
         self._forbidden_cells = self._extract_forbidden_cells()
         
+        # テスト期間情報
+        self.test_periods = set()
+        self._load_test_periods()
+        
         # 統計情報
         self.stats = {
             'exchange_synced': 0,
@@ -93,6 +97,24 @@ class SmartEmptySlotFiller:
             'consecutive_avoided': 0,
             'teacher_balance_considered': 0
         }
+    
+    def _load_test_periods(self) -> None:
+        """テスト期間情報を読み込む"""
+        try:
+            from ...infrastructure.parsers.natural_followup_parser import NaturalFollowUpParser
+            from ...infrastructure.config.path_config import path_config
+            
+            parser = NaturalFollowUpParser(path_config.input_dir)
+            result = parser.parse_file("Follow-up.csv")
+            
+            if result.get("test_periods"):
+                for test_period in result["test_periods"]:
+                    day = test_period.day
+                    for period in test_period.periods:
+                        self.test_periods.add((day, period))
+                self.logger.debug(f"テスト期間を{len(self.test_periods)}スロット読み込みました")
+        except Exception as e:
+            self.logger.warning(f"テスト期間情報の読み込みに失敗: {e}")
     
     def fill_empty_slots_smartly(self, schedule: Schedule, school: School, max_passes: int = 3) -> int:
         """スマートに空きコマを埋める（複数パス）
@@ -243,6 +265,7 @@ class SmartEmptySlotFiller:
                     
                     # 日内重複チェック
                     if self._would_cause_daily_duplicate(schedule, class_ref, time_slot, best_subject):
+                        self.logger.debug(f"{class_ref}の{time_slot}への{best_subject.name}配置は日内重複のため不可")
                         can_assign_all = False
                         break
                     
@@ -276,8 +299,8 @@ class SmartEmptySlotFiller:
             self.logger.info("強制モード: すべての空きスロットを埋めます")
         
         for time_slot, class_ref in empty_slots:
-            # 交流学級と5組は既に処理済みなのでスキップ（強制モード以外）
-            if strategy != "forced" and (class_ref in self.exchange_mappings or class_ref in self.grade5_classes):
+            # 交流学級は強制モード以外でスキップ、5組は常にスキップ
+            if (strategy != "forced" and class_ref in self.exchange_mappings) or class_ref in self.grade5_classes:
                 continue
             
             if self._fill_single_slot(schedule, school, time_slot, class_ref, strategy):
@@ -383,6 +406,10 @@ class SmartEmptySlotFiller:
                 all_allowed = True
                 for class_ref in self.grade5_classes:
                     if self._is_forbidden_subject(time_slot, class_ref, subject):
+                        all_allowed = False
+                        break
+                    # 日内重複チェックも追加
+                    if self._would_cause_daily_duplicate(schedule, class_ref, time_slot, subject):
                         all_allowed = False
                         break
                 
@@ -500,6 +527,10 @@ class SmartEmptySlotFiller:
     def _would_cause_daily_duplicate(self, schedule: Schedule, class_ref: ClassReference,
                                    time_slot: TimeSlot, subject: Subject) -> bool:
         """日内重複が発生するかチェック"""
+        # 保護教科は日内重複を許可
+        if subject.name in self.excluded_subjects:
+            return False
+            
         for period in range(1, 7):
             if period == time_slot.period:
                 continue
@@ -596,6 +627,10 @@ class SmartEmptySlotFiller:
                     if self._should_skip_slot(time_slot, class_ref):
                         continue
                     
+                    # テスト期間はスキップ
+                    if (day, period) in self.test_periods:
+                        continue
+                    
                     # 既に割り当てがある場合はスキップ
                     if schedule.get_assignment(time_slot, class_ref):
                         continue
@@ -612,8 +647,11 @@ class SmartEmptySlotFiller:
     
     def _should_skip_slot(self, time_slot: TimeSlot, class_ref: ClassReference) -> bool:
         """このスロットをスキップすべきか判定"""
-        # 月曜6時限は「欠」なのでスキップ
+        # 月曜6時限は「欠」なのでスキップ（ただし3年生は除外）
         if time_slot.day == "月" and time_slot.period == 6:
+            # 3年生は月曜6時限の制約から除外される
+            if class_ref.grade == 3:
+                return False
             return True
         
         # 火水金の6時限は「YT」なのでスキップ

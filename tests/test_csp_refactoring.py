@@ -1,4 +1,4 @@
-"""CSPリファクタリングのテスト"""
+"""CSPオーケストレーターのテスト"""
 import unittest
 from pathlib import Path
 import sys
@@ -6,16 +6,15 @@ import sys
 # プロジェクトルートをパスに追加
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.domain.services.advanced_csp_schedule_generator import AdvancedCSPScheduleGenerator
-from src.domain.services.advanced_csp_schedule_generator_refactored import AdvancedCSPScheduleGeneratorRefactored
+from src.domain.services.csp_orchestrator import CSPOrchestrator
 from src.domain.constraints.base import ConstraintValidator
 from src.infrastructure.config.advanced_csp_config_loader import AdvancedCSPConfigLoader
 from src.infrastructure.repositories.csv_repository import CSVSchoolRepository
 from src.infrastructure.config.path_config import path_config
 
 
-class TestCSPRefactoring(unittest.TestCase):
-    """リファクタリング前後の動作が同一であることを確認"""
+class TestCSPOrchestrator(unittest.TestCase):
+    """CSPオーケストレーターの動作を確認"""
     
     def setUp(self):
         """テスト環境のセットアップ"""
@@ -30,37 +29,27 @@ class TestCSPRefactoring(unittest.TestCase):
         school_repo = CSVSchoolRepository(path_config.config_dir)
         self.school = school_repo.load_school_data("base_timetable.csv")
         
-        # 新旧のジェネレーターを作成
-        self.original_generator = AdvancedCSPScheduleGenerator(
-            self.constraint_validator, self.config
-        )
-        self.refactored_generator = AdvancedCSPScheduleGeneratorRefactored(
+        # CSPオーケストレーターを作成
+        self.orchestrator = CSPOrchestrator(
             self.constraint_validator, self.config
         )
     
-    def test_interface_compatibility(self):
-        """インターフェースの互換性を確認"""
-        # 両方のジェネレーターが同じメソッドを持つことを確認
-        self.assertTrue(hasattr(self.original_generator, 'generate'))
-        self.assertTrue(hasattr(self.refactored_generator, 'generate'))
+    def test_interface(self):
+        """インターフェースを確認"""
+        # オーケストレーターが必要なメソッドを持つことを確認
+        self.assertTrue(hasattr(self.orchestrator, 'generate'))
         
-        # 統計情報フィールドの存在を確認
-        self.assertTrue(hasattr(self.original_generator, 'stats'))
-        self.assertTrue(hasattr(self.refactored_generator, 'stats'))
-        
-        # 統計情報のキーが同じであることを確認
-        original_keys = set(self.original_generator.stats.keys())
-        refactored_keys = set(self.refactored_generator.stats.keys())
-        
-        # 必須キーが存在することを確認
-        required_keys = {'jiritsu_placed', 'grade5_placed', 'regular_placed', 'swap_attempts', 'swap_success'}
-        self.assertTrue(required_keys.issubset(original_keys))
-        self.assertTrue(required_keys.issubset(refactored_keys))
+        # 内部サービスが作成されていることを確認
+        self.assertTrue(hasattr(self.orchestrator, 'jiritsu_service'))
+        self.assertTrue(hasattr(self.orchestrator, 'grade5_service'))
+        self.assertTrue(hasattr(self.orchestrator, 'regular_service'))
+        self.assertTrue(hasattr(self.orchestrator, 'optimizer'))
+        self.assertTrue(hasattr(self.orchestrator, 'evaluator'))
     
     def test_generation_results(self):
         """生成結果が妥当であることを確認"""
-        # リファクタリング版で生成
-        schedule = self.refactored_generator.generate(self.school, max_iterations=10)
+        # CSPオーケストレーターで生成
+        schedule = self.orchestrator.generate(self.school, max_iterations=10)
         
         # 基本的な検証
         self.assertIsNotNone(schedule)
@@ -70,10 +59,6 @@ class TestCSPRefactoring(unittest.TestCase):
         # 制約違反が少ないことを確認
         violations = self.constraint_validator.validate_all(schedule, self.school)
         self.assertLess(len(violations), 10)  # 違反が10個未満
-        
-        # 統計情報が更新されていることを確認
-        stats = self.refactored_generator.stats
-        self.assertGreater(stats['jiritsu_placed'] + stats['grade5_placed'] + stats['regular_placed'], 0)
 
 
 class TestServiceIsolation(unittest.TestCase):

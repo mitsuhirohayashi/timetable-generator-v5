@@ -23,10 +23,13 @@ class MondaySixthPeriodConstraint(Constraint):
     
     def check(self, schedule: Schedule, school: School, time_slot: TimeSlot, 
               assignment: Assignment) -> bool:
-        """配置前チェック：月曜6校時は欠課のみ許可"""
+        """配置前チェック：月曜6校時は欠課のみ許可（3年生を除く）"""
         # 月曜6校時の場合
         if time_slot.day == "月" and time_slot.period == 6:
-            # 欠課のみ許可
+            # 3年生は制約を適用しない
+            if assignment.class_ref.grade == 3:
+                return True
+            # 1,2年生は欠課のみ許可
             return assignment.subject.name == '欠'
         # それ以外の時間は制約なし
         return True
@@ -40,6 +43,10 @@ class MondaySixthPeriodConstraint(Constraint):
         
         # 全クラスをチェック
         for class_ref in school.get_all_classes():
+            # 3年生は制約を適用しない
+            if class_ref.grade == 3:
+                continue
+                
             assignment = schedule.get_assignment(monday_sixth, class_ref)
             
             # 欠課でない場合は違反

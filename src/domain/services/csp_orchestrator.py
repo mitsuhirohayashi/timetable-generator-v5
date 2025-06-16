@@ -2,15 +2,11 @@
 import logging
 from typing import Optional
 
-from .interfaces.jiritsu_placement_service import JiritsuPlacementService
-from .interfaces.grade5_synchronization_service import Grade5SynchronizationService
-from .interfaces.regular_subject_placement_service import RegularSubjectPlacementService
-from .interfaces.local_search_optimizer import LocalSearchOptimizer
-from .interfaces.schedule_evaluator import ScheduleEvaluator
 from ..entities.schedule import Schedule
 from ..entities.school import School
-from ..value_objects.time_slot import TimeSlot
-from ...infrastructure.config.advanced_csp_config_loader import AdvancedCSPConfig
+from ..value_objects.time_slot import TimeSlot, ClassReference, Subject
+from ..constraints.base import ConstraintValidator
+from ...infrastructure.config.advanced_csp_config_loader import AdvancedCSPConfig, AdvancedCSPConfigLoader
 
 
 class CSPOrchestrator:
@@ -20,19 +16,71 @@ class CSPOrchestrator:
     """
     
     def __init__(self, 
-                 jiritsu_service: JiritsuPlacementService,
-                 grade5_service: Grade5SynchronizationService,
-                 regular_service: RegularSubjectPlacementService,
-                 optimizer: LocalSearchOptimizer,
-                 evaluator: ScheduleEvaluator,
-                 config: AdvancedCSPConfig):
-        self.jiritsu_service = jiritsu_service
-        self.grade5_service = grade5_service
-        self.regular_service = regular_service
-        self.optimizer = optimizer
-        self.evaluator = evaluator
-        self.config = config
+                 constraint_validator: ConstraintValidator,
+                 config: Optional[AdvancedCSPConfig] = None):
+        """CSPオーケストレーターを初期化
+        
+        Args:
+            constraint_validator: 制約検証器
+            config: CSP設定（Noneの場合はデフォルト設定を使用）
+        """
+        self.constraint_validator = constraint_validator
         self.logger = logging.getLogger(__name__)
+        
+        # 設定を読み込み
+        if config is None:
+            config_loader = AdvancedCSPConfigLoader()
+            self.config = config_loader.load()
+        else:
+            self.config = config
+        
+        # テスト期間情報を初期化
+        self.test_periods = set()
+        self._load_test_periods()
+        
+        # 各サービスを内部で作成
+        self._create_services()
+    
+    def _create_services(self) -> None:
+        """必要なサービスを内部で作成"""
+        # 評価器を最初に作成（他のサービスが依存するため）
+        from .implementations.weighted_schedule_evaluator import WeightedScheduleEvaluator
+        self.evaluator = WeightedScheduleEvaluator(self.config, self.constraint_validator)
+        
+        # 各サービス実装をインポートして作成
+        from .implementations.backtrack_jiritsu_placement_service import BacktrackJiritsuPlacementService
+        from .implementations.synchronized_grade5_service import SynchronizedGrade5Service
+        from .implementations.greedy_subject_placement_service import GreedySubjectPlacementService
+        from .implementations.random_swap_optimizer import RandomSwapOptimizer
+        
+        self.jiritsu_service = BacktrackJiritsuPlacementService(self.config, self.constraint_validator)
+        self.grade5_service = SynchronizedGrade5Service(self.config, self.constraint_validator)
+        self.regular_service = GreedySubjectPlacementService(self.config, self.constraint_validator)
+        self.optimizer = RandomSwapOptimizer(self.config, self.constraint_validator, self.evaluator)
+    
+    def _load_test_periods(self) -> None:
+        """テスト期間情報を読み込む"""
+        try:
+            from ...infrastructure.parsers.natural_followup_parser import NaturalFollowUpParser
+            from ...infrastructure.config.path_config import path_config
+            
+            parser = NaturalFollowUpParser(path_config.input_dir)
+            result = parser.parse_file("Follow-up.csv")
+            
+            if result.get("test_periods"):
+                for test_period in result["test_periods"]:
+                    day = test_period.day
+                    for period in test_period.periods:
+                        self.test_periods.add((day, period))
+                self.logger.info(f"テスト期間を{len(self.test_periods)}スロット読み込みました: {sorted(self.test_periods)}")
+        except Exception as e:
+            self.logger.warning(f"テスト期間情報の読み込みに失敗: {e}")
+    
+    def _is_test_period(self, time_slot: TimeSlot) -> bool:
+        """指定されたスロットがテスト期間かどうか判定"""
+        if not hasattr(self, 'test_periods'):
+            return False
+        return (time_slot.day, time_slot.period) in self.test_periods
     
     def generate(self, school: School, max_iterations: int = 200,
                  initial_schedule: Optional[Schedule] = None) -> Schedule:
@@ -55,7 +103,10 @@ class CSPOrchestrator:
         if initial_schedule:
             self._lock_all_existing_assignments(schedule, school)
         
-        # テスト期間の保護は別途実施（FollowUpProcessorが担当）
+        # テスト期間を強力に保護
+        from .test_period_protector import TestPeriodProtector
+        protector = TestPeriodProtector()
+        protector.protect_test_periods(schedule, school)
         
         # 固定科目の強制配置と保護
         self._enforce_and_lock_fixed_subjects(schedule, school)
@@ -174,8 +225,8 @@ class CSPOrchestrator:
                     parent_assignment = schedule.get_assignment(time_slot, parent_class)
                     if parent_assignment and parent_assignment.subject.name not in ["保", "保健体育"]:
                         if not exchange_assignment or exchange_assignment.subject != parent_assignment.subject:
-                            # ロックされている場合はスキップ
-                            if schedule.is_locked(time_slot, exchange_class):
+                            # ロックされている場合はスキップ（交流学級または親学級）
+                            if schedule.is_locked(time_slot, exchange_class) or schedule.is_locked(time_slot, parent_class):
                                 continue
                                 
                             # 既存の割り当てを削除
@@ -186,10 +237,14 @@ class CSPOrchestrator:
                             new_assignment = Assignment(exchange_class, parent_assignment.subject, parent_assignment.teacher)
                             
                             # 制約チェック（evaluatorを使用）
-                            # 簡易チェック：教師重複のみ確認
+                            # 簡易チェック：教師重複と日内重複を確認
                             if parent_assignment.teacher and schedule.is_teacher_available(time_slot, parent_assignment.teacher):
-                                schedule.assign(time_slot, new_assignment)
-                                sync_count += 1
+                                # 日内重複チェック
+                                if not self._would_cause_daily_duplicate_early_sync(schedule, exchange_class, time_slot, parent_assignment.subject):
+                                    schedule.assign(time_slot, new_assignment)
+                                    sync_count += 1
+                                else:
+                                    self.logger.debug(f"{exchange_class}の{time_slot}への{parent_assignment.subject.name}配置は日内重複のためスキップ")
         
         self.logger.info(f"交流学級の早期同期完了: {sync_count}件")
     
@@ -203,21 +258,60 @@ class CSPOrchestrator:
         self.logger.info(f"交流学級の最終同期完了: {sync_count}件")
     
     def _lock_all_existing_assignments(self, schedule: Schedule, school: School) -> None:
-        """初期スケジュールのすべての既存の割り当てをロック"""
+        """初期スケジュールの既存の割り当てをロック（自立活動配置用の空きを残す）"""
         locked_count = 0
         test_subjects = {"test", "テスト", "定期テスト", "期末テスト", "中間テスト"}
+        fixed_subjects = {"欠", "YT", "道", "道徳", "学", "学活", "学総", "総", "総合", "行"}
+        
+        # 交流学級と親学級のマッピング
+        exchange_mappings = {
+            ClassReference(1, 6): ClassReference(1, 1),
+            ClassReference(1, 7): ClassReference(1, 2),
+            ClassReference(2, 6): ClassReference(2, 3),
+            ClassReference(2, 7): ClassReference(2, 2),
+            ClassReference(3, 6): ClassReference(3, 3),
+            ClassReference(3, 7): ClassReference(3, 2),
+        }
         
         for time_slot, assignment in schedule.get_all_assignments():
-            # すべての既存の割り当てをロック（特にテスト科目）
-            if not schedule.is_locked(time_slot, assignment.class_ref):
+            # 固定科目やテスト科目は必ずロック
+            should_lock = False
+            
+            # テスト科目の場合
+            if assignment.subject.name.lower() in test_subjects:
+                should_lock = True
+                self.logger.info(
+                    f"テスト科目をロック: {time_slot} {assignment.class_ref} - {assignment.subject.name}"
+                )
+            
+            # 固定科目の場合
+            if assignment.subject.name in fixed_subjects:
+                should_lock = True
+            
+            # 交流学級の自立活動の場合はロック
+            if assignment.subject.name in ["自立", "日生", "生単", "作業"]:
+                should_lock = True
+            
+            # 交流学級でない通常の授業もロック
+            if assignment.class_ref not in exchange_mappings:
+                should_lock = True
+            
+            # テスト期間かチェック
+            is_test_period = self._is_test_period(time_slot)
+            if is_test_period:
+                should_lock = True  # 必ずロック
+                self.logger.info(
+                    f"テスト期間を強制ロック: {time_slot} {assignment.class_ref} - {assignment.subject.name}"
+                )
+            
+            # 交流学級の通常授業（数、英など）はロックしない（自立活動配置用）
+            # ただし、テスト期間中は全ての教科をロック
+            if not is_test_period and assignment.class_ref in exchange_mappings and assignment.subject.name not in ["自立", "日生", "生単", "作業"] and assignment.subject.name not in fixed_subjects:
+                should_lock = False
+            
+            if should_lock and not schedule.is_locked(time_slot, assignment.class_ref):
                 schedule.lock_cell(time_slot, assignment.class_ref)
                 locked_count += 1
-                
-                # テスト科目の場合は特別にログ
-                if assignment.subject.name.lower() in test_subjects:
-                    self.logger.info(
-                        f"テスト科目をロック: {time_slot} {assignment.class_ref} - {assignment.subject.name}"
-                    )
         
         if locked_count > 0:
             self.logger.info(f"初期スケジュールから{locked_count}個の割り当てをロックしました")
@@ -283,3 +377,24 @@ class CSPOrchestrator:
                 self.logger.warning(f"  - {dup['class']}の{dup['day']}曜日: {dup['subject']}が{periods_str}に重複")
         else:
             self.logger.info(f"=== {stage}: 日内重複なし ===")
+    
+    def _would_cause_daily_duplicate_early_sync(self, schedule: Schedule, class_ref: ClassReference,
+                                               time_slot: TimeSlot, subject: Subject) -> bool:
+        """早期同期時の日内重複チェック"""
+        # 保護教科は日内重複を許可
+        protected_subjects = {'YT', '道', '学', '欠', '道徳', '学活', '学総', '総合', '行'}
+        if subject.name in protected_subjects:
+            return False
+            
+        # その日の他の時間に同じ教科があるかチェック
+        for period in range(1, 7):
+            if period == time_slot.period:
+                continue
+            
+            other_slot = TimeSlot(time_slot.day, period)
+            assignment = schedule.get_assignment(other_slot, class_ref)
+            
+            if assignment and assignment.subject == subject:
+                return True
+        
+        return False

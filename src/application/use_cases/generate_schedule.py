@@ -30,9 +30,9 @@ from ...domain.constraints import (
     PartTimeTeacherConstraint,
     Grade5SameSubjectConstraint
 )
-from ...domain.constraints.exchange_class_full_sync_constraint import ExchangeClassFullSyncConstraint
 from ...domain.constraints.teacher_conflict_constraint_refactored import TeacherConflictConstraintRefactored
 from ...domain.constraints.gym_usage_constraint import GymUsageConstraintRefactored
+from ...domain.constraints.test_period_exclusion import TestPeriodExclusionConstraint
 from ...infrastructure.repositories.csv_repository import CSVScheduleRepository, CSVSchoolRepository
 from ...infrastructure.parsers.followup_parser import FollowUpPromptParser
 from ...infrastructure.parsers.natural_followup_parser import NaturalFollowUpParser
@@ -341,6 +341,28 @@ class GenerateScheduleUseCase:
         self.logger.info(f"制約を{len(all_constraints)}件登録しました")
         
         # 追加の制約（互換性のため）
+        # テスト期間制約を追加
+        try:
+            natural_parser = NaturalFollowUpParser(self.path_manager.input_dir)
+            natural_result = natural_parser.parse_file("Follow-up.csv")
+            
+            if natural_result.get("test_periods"):
+                test_period_dict = {}
+                for test_period in natural_result["test_periods"]:
+                    day = test_period.day
+                    description = test_period.reason if hasattr(test_period, 'reason') else "テスト期間"
+                    for period in test_period.periods:
+                        test_period_dict[(day, period)] = description
+                
+                if test_period_dict:
+                    self.constraint_system.register_constraint(
+                        TestPeriodExclusionConstraint(test_period_dict),
+                        ConstraintPriority.CRITICAL
+                    )
+                    self.logger.info(f"テスト期間制約を追加: {len(test_period_dict)}スロット")
+        except Exception as e:
+            self.logger.warning(f"テスト期間制約の追加に失敗: {e}")
+        
         # 教師不在制約（自然言語パーサーから取得した情報を使用）
         if self.teacher_absences:
             self.constraint_system.register_constraint(

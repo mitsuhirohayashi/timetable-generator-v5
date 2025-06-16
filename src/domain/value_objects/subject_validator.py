@@ -81,7 +81,7 @@ class SubjectValidator:
         # デフォルト値を設定
         if not self._valid_subjects:
             self._valid_subjects = {
-                "国", "社", "数", "理", "英", "音", "美", "技", "家", "保", 
+                "国", "社", "数", "理", "英", "音", "美", "技", "家", "技家", "保", 
                 "道", "総", "YT", "自立", "日生", "生単", "作業", "学活", "行事", "行", "欠", "学", "学総"
             }
             self._special_needs_subjects = {"自立", "日生", "生単", "作業"}
@@ -100,7 +100,7 @@ class SubjectValidator:
         
         # デフォルト値を設定
         if not self._fixed_subjects:
-            self._fixed_subjects = {"YT", "総", "学活", "欠", "道", "行事", "行", "学", "学総"}
+            self._fixed_subjects = {"YT", "総", "学活", "欠", "道", "行事", "行", "学", "学総", "テスト", "技家"}
         
         # デフォルト教師を読み込む（オプション）
         self._default_teachers = {}

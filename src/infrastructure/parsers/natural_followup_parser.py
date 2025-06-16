@@ -35,6 +35,13 @@ class MeetingSchedule:
 
 
 @dataclass
+class TestPeriod:
+    """テスト期間情報"""
+    day: str
+    periods: List[int]
+
+
+@dataclass
 class SpecialRequest:
     """特別要望"""
     description: str
@@ -53,6 +60,7 @@ class NaturalFollowUpParser:
         self.fixed_schedules = []
         self.special_requests = []
         self.meetings = []
+        self.test_periods = []
         
     def parse_file(self, filename: str = "Follow-up.csv") -> Dict:
         """Follow-up.csvから情報を解析"""
@@ -98,7 +106,7 @@ class NaturalFollowUpParser:
                     continue
                 
                 # 曜日の判定
-                day_match = re.match(r'^(月|火|水|木|金)曜日', line)
+                day_match = re.match(r'^(月|火|水|木|金)曜日[:：]?', line)
                 if day_match:
                     self.current_day = day_match.group(1)
                     continue
@@ -114,7 +122,7 @@ class NaturalFollowUpParser:
                     elif section == "permanent":
                         self._parse_permanent_item(content)
                         
-                elif ('先生' in line or '実施' in line or '不在' in line) and self.current_day:
+                elif ('先生' in line or '実施' in line or '不在' in line or 'テスト' in line) and self.current_day:
                     content = line
                     
                     if section == "weekly":
@@ -150,6 +158,24 @@ class NaturalFollowUpParser:
         # 初任者研修の特別処理
         if "初任者研修" in content or "初研" in content:
             self._handle_beginner_training(content, self.current_day)
+            return
+        
+        # テスト期間の検出
+        test_pattern = r'([０-９0-9]+)[・・、]?([０-９0-9]+)?[・・、]?([０-９0-9]+)?校?時.*テスト.*変更.*しない'
+        test_match = re.search(test_pattern, content)
+        if test_match:
+            periods = []
+            for i in range(1, 4):
+                if test_match.group(i):
+                    # 全角数字を半角に変換
+                    num_str = test_match.group(i).translate(str.maketrans('０１２３４５６７８９', '0123456789'))
+                    periods.append(int(num_str))
+            if periods:
+                self.test_periods.append(TestPeriod(
+                    day=self.current_day,
+                    periods=periods
+                ))
+                self.logger.info(f"テスト期間を検出: {self.current_day} {periods}校時")
             return
         
         # 教員不在パターン
@@ -504,6 +530,7 @@ class NaturalFollowUpParser:
             "fixed_schedules": self.fixed_schedules,
             "special_requests": self.special_requests,
             "meetings": self.meetings,
+            "test_periods": self.test_periods,
             "parse_success": True
         }
     
@@ -514,6 +541,7 @@ class NaturalFollowUpParser:
             "fixed_schedules": [],
             "special_requests": [],
             "meetings": [],
+            "test_periods": [],
             "parse_success": False
         }
     

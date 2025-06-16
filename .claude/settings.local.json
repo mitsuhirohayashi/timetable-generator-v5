@@ -23,7 +23,10 @@
       "Bash(tree:*)",
       "Bash(true)",
       "Bash(chmod:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(cat:*)",
+      "Bash(echo:*)"
     ],
     "deny": []
   }

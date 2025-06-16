@@ -9,7 +9,7 @@ from datetime import datetime
 from ...domain.constraints.base import Constraint, ConstraintType, ConstraintPriority
 from ...domain.constraints.teacher_absence_constraint import TeacherAbsenceConstraint
 from ...domain.constraints.meeting_lock_constraint import MeetingLockConstraint
-from ...domain.constraints.test_period_exclusion import TestPeriodProtectionConstraint
+# from ...domain.constraints.test_period_exclusion import TestPeriodProtectionConstraint
 from ...domain.value_objects.time_slot import TimeSlot
 
 
@@ -294,8 +294,9 @@ class EnhancedFollowUpParser:
             
             if test_slots:
                 # テスト期間保護制約を追加
-                constraints.append(TestPeriodProtectionConstraint(test_slots))
-                self.logger.info(f"テスト期間保護制約を生成: {len(test_slots)}スロット")
+                # NOTE: テスト期間保護はFollowUpProcessorで処理されるため、ここではスキップ
+                # constraints.append(TestPeriodProtectionConstraint(test_slots))
+                self.logger.info(f"テスト期間を検出: {len(test_slots)}スロット（FollowUpProcessorで処理）")
         
         # 教員不在制約
         if self.teacher_absences:

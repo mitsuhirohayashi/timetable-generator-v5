@@ -119,8 +119,8 @@ class ScheduleGenerationService:
             if corrections > 0:
                 self.logger.info(f"入力データを{corrections}箇所補正しました")
         
-        # リファクタリング版を使用
-        from ...domain.services.advanced_csp_schedule_generator import AdvancedCSPScheduleGenerator
+        # CSPOrchestratorを直接使用（ファサードを経由せず）
+        from ...domain.services.csp_orchestrator import CSPOrchestrator
         
         # ConstraintValidatorアダプターを作成
         class ConstraintValidatorAdapter:
@@ -144,12 +144,12 @@ class ScheduleGenerationService:
                 validation_result = self.unified_system.validate_schedule(schedule, school)
                 return validation_result.violations
         
-        # アダプターを使ってAdvancedCSPScheduleGeneratorを作成
+        # アダプターを使ってCSPOrchestratorを作成
         adapter = ConstraintValidatorAdapter(self.constraint_system)
-        advanced_generator = AdvancedCSPScheduleGenerator(adapter)
+        csp_orchestrator = CSPOrchestrator(adapter)
         
         # 生成実行
-        schedule = advanced_generator.generate(school, max_iterations, initial_schedule)
+        schedule = csp_orchestrator.generate(school, max_iterations, initial_schedule)
         
         # 統計情報を更新
         self.generation_stats['assignments_made'] = len(schedule.get_all_assignments())

@@ -1,35 +1,32 @@
 """自立活動配置サービスのインターフェース"""
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from dataclasses import dataclass
 
 from ...entities.schedule import Schedule
 from ...entities.school import School
-from ...value_objects.time_slot import TimeSlot, ClassReference, Subject, Teacher
+from ...value_objects.time_slot import TimeSlot, ClassReference
 
 
 @dataclass
 class JiritsuRequirement:
-    """自立活動要件"""
+    """自立活動の要件"""
     exchange_class: ClassReference
     parent_class: ClassReference
-    hours_needed: int
-    jiritsu_teacher: Teacher
-    placed_slots: List[TimeSlot]
+    periods_per_week: int
+    allowed_parent_subjects: List[str]
+    
+    def __repr__(self) -> str:
+        return (f"JiritsuRequirement({self.exchange_class} <- {self.parent_class}, "
+                f"{self.periods_per_week}コマ/週, 親学級教科: {self.allowed_parent_subjects})")
 
 
 class JiritsuPlacementService(ABC):
-    """自立活動配置サービスのインターフェース
-    
-    責務:
-    - 自立活動要件の分析
-    - 自立活動と親学級の数学/英語の同時配置
-    - バックトラッキングによる最適配置
-    """
+    """自立活動配置サービスのインターフェース"""
     
     @abstractmethod
     def analyze_requirements(self, school: School, schedule: Schedule) -> List[JiritsuRequirement]:
-        """自立活動要件を分析
+        """自立活動の要件を分析
         
         Args:
             school: 学校情報
@@ -46,7 +43,7 @@ class JiritsuPlacementService(ABC):
         """自立活動を配置
         
         Args:
-            schedule: スケジュール
+            schedule: 配置先のスケジュール
             school: 学校情報
             requirements: 自立活動要件のリスト
             
@@ -56,16 +53,17 @@ class JiritsuPlacementService(ABC):
         pass
     
     @abstractmethod
-    def find_feasible_slots(self, schedule: Schedule, school: School,
-                           requirement: JiritsuRequirement) -> List[Tuple[TimeSlot, Subject, Teacher]]:
-        """配置可能なスロットを探索
+    def can_place_jiritsu(self, schedule: Schedule, school: School,
+                         time_slot: TimeSlot, requirement: JiritsuRequirement) -> bool:
+        """特定の時間枠に自立活動を配置可能かチェック
         
         Args:
-            schedule: スケジュール
+            schedule: 現在のスケジュール
             school: 学校情報
+            time_slot: 配置先の時間枠
             requirement: 自立活動要件
             
         Returns:
-            配置可能なスロットのリスト（時間枠、親学級教科、親学級教師）
+            配置可能な場合True
         """
         pass

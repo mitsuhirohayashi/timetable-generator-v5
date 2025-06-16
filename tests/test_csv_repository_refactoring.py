@@ -9,8 +9,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.infrastructure.repositories.csv_repository import CSVScheduleRepository, CSVSchoolRepository
-from src.infrastructure.repositories.csv_repository_refactored import (
-    CSVScheduleRepositoryRefactored,
+from src.infrastructure.repositories.csv_repository import (
+    CSVScheduleRepository,
     CSVSchoolRepository as CSVSchoolRepositoryRefactored
 )
 from src.infrastructure.config.path_config import path_config
@@ -30,7 +30,7 @@ class TestCSVRepositoryRefactoring(unittest.TestCase):
         
         # 新旧のリポジトリを初期化
         self.original_repo = CSVScheduleRepository(base_path=self.test_path)
-        self.refactored_repo = CSVScheduleRepositoryRefactored(base_path=self.test_path)
+        self.refactored_repo = CSVScheduleRepository(base_path=self.test_path)
     
     def tearDown(self):
         """テスト環境のクリーンアップ"""

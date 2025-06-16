@@ -19,6 +19,26 @@ class GreedySubjectPlacementService(RegularSubjectPlacementService):
         self.constraint_validator = constraint_validator
         self.absence_loader = TeacherAbsenceLoader()
         self.logger = logging.getLogger(__name__)
+        self.test_periods = set()
+        self._load_test_periods()
+    
+    def _load_test_periods(self) -> None:
+        """テスト期間情報を読み込む"""
+        try:
+            from ....infrastructure.parsers.natural_followup_parser import NaturalFollowUpParser
+            from ....infrastructure.config.path_config import path_config
+            
+            parser = NaturalFollowUpParser(path_config.input_dir)
+            result = parser.parse_file("Follow-up.csv")
+            
+            if result.get("test_periods"):
+                for test_period in result["test_periods"]:
+                    day = test_period.day
+                    for period in test_period.periods:
+                        self.test_periods.add((day, period))
+                self.logger.debug(f"テスト期間を{len(self.test_periods)}スロット読み込みました")
+        except Exception as e:
+            self.logger.warning(f"テスト期間情報の読み込みに失敗: {e}")
     
     def place_subjects(self, schedule: Schedule, school: School) -> int:
         """通常教科を配置"""
@@ -70,6 +90,10 @@ class GreedySubjectPlacementService(RegularSubjectPlacementService):
         for day in self.config.weekdays:
             for period in range(self.config.periods_min, self.config.periods_max + 1):
                 slot = TimeSlot(day, period)
+                
+                # テスト期間チェックを追加
+                if (day, period) in self.test_periods:
+                    continue  # テスト期間はスキップ
                 
                 # 固定制約チェック
                 if day == "月" and period == 6:

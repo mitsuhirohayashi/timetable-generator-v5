@@ -7,6 +7,7 @@ from ...domain.entities.school import School
 from ...domain.value_objects.time_slot import TimeSlot, ClassReference, Subject, Teacher
 from ...domain.value_objects.assignment import Assignment
 from ..repositories.teacher_absence_loader import TeacherAbsenceLoader
+from ...domain.services.test_period_protector import TestPeriodProtector
 
 
 class ScheduleValidationService:
@@ -15,6 +16,7 @@ class ScheduleValidationService:
     def __init__(self, absence_loader: Optional[TeacherAbsenceLoader] = None):
         self.logger = logging.getLogger(__name__)
         self.absence_loader = absence_loader or TeacherAbsenceLoader()
+        self.test_period_protector = TestPeriodProtector()
     
     def validate_and_fix_schedule(
         self,
@@ -27,6 +29,13 @@ class ScheduleValidationService:
         Returns:
             修正結果の統計情報
         """
+        # テスト期間情報をログ出力
+        if self.test_period_protector.test_periods:
+            self.logger.info(
+                f"テスト期間を検出: {len(self.test_period_protector.test_periods)}スロット - "
+                f"{sorted(self.test_period_protector.test_periods)}"
+            )
+        
         stats = {
             'teacher_absence_removed': 0,
             'teacher_absence_moved': 0,
@@ -79,6 +88,14 @@ class ScheduleValidationService:
                         teacher.name, day, period
                     ):
                         if not schedule.is_locked(time_slot, class_ref):
+                            # テスト期間の場合は移動をスキップ
+                            if self.test_period_protector.is_test_period(time_slot):
+                                self.logger.info(
+                                    f"テスト期間のため教員不在違反を無視: {time_slot} {class_ref} "
+                                    f"{assignment.subject.name}({teacher.name})"
+                                )
+                                continue
+                            
                             assignments_to_move.append(
                                 (time_slot, class_ref, assignment)
                             )
@@ -251,6 +268,12 @@ class ScheduleValidationService:
                 if len(pe_groups) <= 1:
                     continue
                 
+                # テスト期間中の体育を検出
+                if self.test_period_protector.is_test_period(time_slot) and len(pe_groups) > 1:
+                    self.logger.info(
+                        f"テスト期間中の体育を保護: {day}曜{period}限に{len(pe_groups)}グループの体育"
+                    )
+                
                 # 5組の合同体育かチェック
                 grade5_classes = [c for group in pe_groups for c, _, _ in group if c.class_number == 5]
                 non_grade5_classes = [c for group in pe_groups for c, _, _ in group if c.class_number != 5]
@@ -275,6 +298,14 @@ class ScheduleValidationService:
                 for i in range(1, len(pe_groups)):
                     for class_ref, _, is_locked in pe_groups[i]:
                         if not is_locked:
+                            # テスト期間の場合は削除をスキップ
+                            if self.test_period_protector.is_test_period(time_slot):
+                                self.logger.info(
+                                    f"テスト期間のため体育館制約違反を無視: {day}曜{period}校時 "
+                                    f"{class_ref} 保健体育"
+                                )
+                                continue
+                            
                             schedule.remove_assignment(time_slot, class_ref)
                             removed_count += 1
                             self.logger.info(
@@ -304,6 +335,14 @@ class ScheduleValidationService:
                 
                 # ロックされていない場合のみ修正
                 if not schedule.is_locked(time_slot, class_ref):
+                    # テスト期間の場合は削除をスキップ
+                    if self.test_period_protector.is_test_period(time_slot):
+                        self.logger.info(
+                            f"テスト期間のためセル配置禁止違反を無視: {class_ref}の{time_slot}に"
+                            f"{assignment.subject.name}（非{assignment.subject.name}指定）"
+                        )
+                        continue
+                    
                     schedule.remove_assignment(time_slot, class_ref)
                     
                     # 代替教科を探して配置

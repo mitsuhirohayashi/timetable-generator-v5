@@ -1,14 +1,36 @@
 """バックトラッキングによる自立活動配置サービスの実装"""
 import logging
 from typing import List, Optional, Tuple
+from dataclasses import dataclass
 
-from ..interfaces.jiritsu_placement_service import JiritsuPlacementService, JiritsuRequirement
+from ..interfaces.jiritsu_placement_service import JiritsuPlacementService
+from ..interfaces.jiritsu_placement_service import JiritsuRequirement as BaseJiritsuRequirement
 from ...entities.schedule import Schedule
 from ...entities.school import School
 from ...value_objects.time_slot import TimeSlot, ClassReference, Subject, Teacher
 from ...value_objects.assignment import Assignment
 from ....infrastructure.repositories.teacher_absence_loader import TeacherAbsenceLoader
 from ....infrastructure.config.advanced_csp_config_loader import AdvancedCSPConfig
+
+
+@dataclass
+class JiritsuRequirement(BaseJiritsuRequirement):
+    """自立活動の要件（実装用拡張版）"""
+    hours_needed: int
+    jiritsu_teacher: Teacher
+    placed_slots: List[TimeSlot]
+    
+    def __init__(self, exchange_class, parent_class, hours_needed, jiritsu_teacher, placed_slots):
+        # 基底クラスの初期化
+        super().__init__(
+            exchange_class=exchange_class,
+            parent_class=parent_class,
+            periods_per_week=hours_needed,
+            allowed_parent_subjects=["数", "英"]  # デフォルト値
+        )
+        self.hours_needed = hours_needed
+        self.jiritsu_teacher = jiritsu_teacher
+        self.placed_slots = placed_slots
 
 
 class BacktrackJiritsuPlacementService(JiritsuPlacementService):
@@ -266,3 +288,40 @@ class BacktrackJiritsuPlacementService(JiritsuPlacementService):
             score -= 3
         
         return score
+    
+    def can_place_jiritsu(self, schedule: Schedule, school: School,
+                         time_slot: TimeSlot, requirement: JiritsuRequirement) -> bool:
+        """特定の時間枠に自立活動を配置可能かチェック"""
+        # 既存の割り当てをチェック
+        exchange_assignment = schedule.get_assignment(time_slot, requirement.exchange_class)
+        parent_assignment = schedule.get_assignment(time_slot, requirement.parent_class)
+        
+        # 既に割り当てがある場合は配置不可
+        if exchange_assignment or parent_assignment:
+            return False
+        
+        # ロックされている場合は配置不可
+        if (schedule.is_locked(time_slot, requirement.exchange_class) or 
+            schedule.is_locked(time_slot, requirement.parent_class)):
+            return False
+        
+        # 固定制約をチェック
+        if time_slot.day == "月" and time_slot.period == 6:  # 月曜6限は欠
+            return False
+        
+        # 教員の利用可能性をチェック（JiritsuRequirementにjiritsu_teacher属性がある場合）
+        if hasattr(requirement, 'jiritsu_teacher'):
+            if not self._is_teacher_available(requirement.jiritsu_teacher, time_slot, schedule, school):
+                return False
+        
+        # 親学級で適切な教科を配置できるかチェック
+        for subject_name in requirement.allowed_parent_subjects:
+            subject = Subject(subject_name)
+            teacher = school.get_assigned_teacher(subject, requirement.parent_class)
+            
+            if teacher and self._can_place_subject(
+                schedule, school, requirement.parent_class, time_slot, subject, teacher
+            ):
+                return True
+        
+        return False

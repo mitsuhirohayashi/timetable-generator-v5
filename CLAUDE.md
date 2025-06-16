@@ -19,9 +19,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 道、道徳（道徳）
 - 学総（学年総合）
 - 行、行事（行事）
+- テスト（定期テスト）
+- 技家（技術・家庭科合併テスト - 技術0.5時間、家庭科0.5時間）
 
 これらの科目は学校運営上の固定された時間であり、`FixedSubjectProtectionPolicy`により自動的に保護されます。
 空きスロットを埋める際も、これらの科目が既に配置されている場合は変更できないようシステムレベルでブロックされています。
+
+### 技家について
+「技家」はテスト期間中に使用される特別な表記で、技術科と家庭科の合併テストを表します。
+実際のテストでは、生徒は技術科を25分、家庭科を25分の計50分（1校時分）で問題を解きます。
+
+**重要：固定科目を勝手に追加・変更しない**
+- システムは上記の固定科目（欠、YT、学、道、学総、総合、行）を勝手に追加してはいけません
+- input.csvに入力されている内容を完全に尊重し、変更しないこと
+- 例：月曜6限が通常授業の場合、勝手に「欠」に変更しない
+- 例：火曜6限が「欠」の場合、勝手に「YT」に変更しない
+- 固定科目は「保護」するのみで「強制」はしない
 
 ## 📋 システムの主要機能（2025年6月リファクタリング版）
 
@@ -134,6 +147,7 @@ This is version 3.0 of the school timetable generation system using Clean Archit
 5. **Simplified Architecture**: Cleaner structure with only essential components
 6. **Centralized Logging**: New LoggingConfig system for unified log management
 7. **Service-Oriented Refactoring**: Modular services with clear responsibilities
+8. **CSVRepository Refactoring**: Simplified CSVRepository using facade pattern with dedicated reader/writer components
 
 ### Key Features
 1. **Advanced CSP Algorithm**: 

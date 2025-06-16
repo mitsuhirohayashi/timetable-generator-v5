@@ -24,6 +24,26 @@ class RandomSwapOptimizer(LocalSearchOptimizer):
             'swap_attempts': 0,
             'swap_success': 0
         }
+        self.test_periods = set()
+        self._load_test_periods()
+    
+    def _load_test_periods(self) -> None:
+        """テスト期間情報を読み込む"""
+        try:
+            from ....infrastructure.parsers.natural_followup_parser import NaturalFollowUpParser
+            from ....infrastructure.config.path_config import path_config
+            
+            parser = NaturalFollowUpParser(path_config.input_dir)
+            result = parser.parse_file("Follow-up.csv")
+            
+            if result.get("test_periods"):
+                for test_period in result["test_periods"]:
+                    day = test_period.day
+                    for period in test_period.periods:
+                        self.test_periods.add((day, period))
+                self.logger.debug(f"テスト期間を{len(self.test_periods)}スロット読み込みました")
+        except Exception as e:
+            self.logger.warning(f"テスト期間情報の読み込みに失敗: {e}")
     
     def optimize(self, schedule: Schedule, school: School,
                 jiritsu_requirements: List[JiritsuRequirement],
@@ -83,6 +103,11 @@ class RandomSwapOptimizer(LocalSearchOptimizer):
             return False
         
         (slot1, assignment1), (slot2, assignment2) = candidates
+        
+        # テスト期間チェックを追加
+        if ((slot1.day, slot1.period) in self.test_periods or 
+            (slot2.day, slot2.period) in self.test_periods):
+            return False  # テスト期間の交換は禁止
         
         # 保護された教科はスキップ
         if (assignment1.subject.is_protected_subject() or 
@@ -181,3 +206,72 @@ class RandomSwapOptimizer(LocalSearchOptimizer):
         # 自立活動制約を維持できるかチェック
         # 簡単な実装：自立活動の交換は禁止
         return False
+    
+    def find_swap_candidates(self, schedule: Schedule, school: School) -> List[tuple]:
+        """交換候補を見つける
+        
+        Returns:
+            交換候補のタプルのリスト [(slot1, assignment1, slot2, assignment2), ...]
+        """
+        candidates = []
+        all_assignments = list(schedule.get_all_assignments())
+        
+        # ランダムに交換候補を生成
+        for _ in range(min(100, len(all_assignments) * 2)):  # 最大100個の候補
+            if len(all_assignments) < 2:
+                break
+                
+            # ランダムに2つの割り当てを選択
+            idx1, idx2 = random.sample(range(len(all_assignments)), 2)
+            slot1, assignment1 = all_assignments[idx1]
+            slot2, assignment2 = all_assignments[idx2]
+            
+            # 同じクラスでない場合はスキップ
+            if assignment1.class_ref != assignment2.class_ref:
+                continue
+            
+            # 固定教科はスキップ
+            if (assignment1.subject.name in self.config.fixed_subjects or
+                assignment2.subject.name in self.config.fixed_subjects):
+                continue
+            
+            # ロックされているスロットはスキップ
+            if (schedule.is_locked(slot1, assignment1.class_ref) or
+                schedule.is_locked(slot2, assignment2.class_ref)):
+                continue
+            
+            candidates.append((slot1, assignment1, slot2, assignment2))
+        
+        return candidates
+    
+    def evaluate_swap(self, schedule: Schedule, school: School, swap_candidate: tuple) -> float:
+        """交換の評価
+        
+        Args:
+            swap_candidate: (slot1, assignment1, slot2, assignment2)のタプル
+            
+        Returns:
+            交換後のスコア改善量（正の値が改善）
+        """
+        slot1, assignment1, slot2, assignment2 = swap_candidate
+        
+        # 現在のスコアを評価
+        current_score = self.evaluator.evaluate(schedule, school, [])
+        
+        # 一時的に交換
+        schedule.remove_assignment(slot1, assignment1.class_ref)
+        schedule.remove_assignment(slot2, assignment2.class_ref)
+        schedule.assign(slot1, assignment2)
+        schedule.assign(slot2, assignment1)
+        
+        # 交換後のスコアを評価
+        new_score = self.evaluator.evaluate(schedule, school, [])
+        
+        # 元に戻す
+        schedule.remove_assignment(slot1, assignment2.class_ref)
+        schedule.remove_assignment(slot2, assignment1.class_ref)
+        schedule.assign(slot1, assignment1)
+        schedule.assign(slot2, assignment2)
+        
+        # 改善量を返す（大きいほど良い）
+        return new_score - current_score

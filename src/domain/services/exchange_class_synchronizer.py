@@ -55,8 +55,9 @@ class ExchangeClassSynchronizer:
                 for period in range(1, 7):
                     time_slot = TimeSlot(day, period)
                     
-                    # ロックされているセルはスキップ
-                    if schedule.is_locked(time_slot, exchange_class):
+                    # ロックされているセルはスキップ（交流学級と親学級の両方をチェック）
+                    if schedule.is_locked(time_slot, exchange_class) or schedule.is_locked(time_slot, parent_class):
+                        self.logger.debug(f"  {time_slot}: ロックされているためスキップ")
                         continue
                     
                     exchange_assignment = schedule.get_assignment(time_slot, exchange_class)
@@ -82,18 +83,22 @@ class ExchangeClassSynchronizer:
                             self.logger.debug(f"  {time_slot}: {parent_assignment.subject}は同期除外教科のためスキップ")
                             continue
                         
-                        # 体育の場合は必ず同期を強制
+                        # 体育の場合でもロックをチェック（テスト期間等を考慮）
                         if parent_assignment.subject.name in self.required_sync_subjects:
                             if not exchange_assignment or exchange_assignment.subject != parent_assignment.subject:
-                                # 既存の授業を削除してでも体育を配置
-                                schedule.remove_assignment(time_slot, exchange_class)
-                                schedule.assign(time_slot, Assignment(
-                                    class_ref=exchange_class,
-                                    subject=parent_assignment.subject,
-                                    teacher=parent_assignment.teacher
-                                ))
-                                self.logger.info(f"  {time_slot}: 交流学級を{parent_assignment.subject}に強制同期")
-                                sync_count += 1
+                                # ロックされていない場合のみ同期
+                                if not schedule.is_locked(time_slot, exchange_class):
+                                    # 既存の授業を削除してでも体育を配置
+                                    schedule.remove_assignment(time_slot, exchange_class)
+                                    schedule.assign(time_slot, Assignment(
+                                        class_ref=exchange_class,
+                                        subject=parent_assignment.subject,
+                                        teacher=parent_assignment.teacher
+                                    ))
+                                    self.logger.info(f"  {time_slot}: 交流学級を{parent_assignment.subject}に強制同期")
+                                    sync_count += 1
+                                else:
+                                    self.logger.debug(f"  {time_slot}: 体育同期はロックのためスキップ")
                                 continue
                         
                         # 交流学級を親学級と同じにする
@@ -223,6 +228,11 @@ class ExchangeClassSynchronizer:
     def _would_cause_daily_duplicate(self, schedule: Schedule, class_ref: ClassReference, 
                                    time_slot: TimeSlot, subject: Subject) -> bool:
         """指定の教科を配置すると日内重複が発生するかチェック"""
+        # 保護教科は日内重複を許可
+        protected_subjects = {'YT', '道', '学', '欠', '道徳', '学活', '学総', '総合', '行'}
+        if subject.name in protected_subjects:
+            return False
+            
         # 同じ日の他の時間に同じ教科があるかチェック
         for period in range(1, 7):
             if period == time_slot.period:
