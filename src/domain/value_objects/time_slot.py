@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from typing import Literal
 from .subject_validator import SubjectValidator
 from .class_validator import ClassValidator
+from ...shared.utils.validation_utils import ValidationUtils
+from ...shared.mixins.validation_mixin import ValidationError
 
 DayOfWeek = Literal["月", "火", "水", "木", "金"]
 Period = Literal[1, 2, 3, 4, 5, 6]
@@ -23,13 +25,17 @@ class TimeSlot:
             # Use object.__setattr__ since dataclass is frozen
             object.__setattr__(self, 'day', day)
         
-        if self.day not in ["月", "火", "水", "木", "金"]:
-            raise ValueError(f"Invalid day: {self.day}")
-        if self.period not in range(1, 7):
-            raise ValueError(f"Invalid period: {self.period}")
+        if not ValidationUtils.is_valid_day(self.day):
+            raise ValidationError(f"Invalid day: {self.day}")
+        if not ValidationUtils.is_valid_period(self.period):
+            raise ValidationError(f"Invalid period: {self.period}")
     
     def __str__(self) -> str:
         return f"{self.day}曜{self.period}校時"
+    
+    def __format__(self, format_spec: str) -> str:
+        """f-string内での表示をサポート"""
+        return str(self)
     
     def is_same_day(self, other: 'TimeSlot') -> bool:
         """同じ曜日かどうか判定"""
@@ -42,6 +48,10 @@ class TimeSlot:
     def is_afternoon(self) -> bool:
         """午後の時間帯かどうか判定"""
         return self.period >= 4
+    
+    def __format__(self, format_spec: str) -> str:
+        """フォーマット指定子に対応"""
+        return str(self)
 
 
 @dataclass(frozen=True)
@@ -51,12 +61,21 @@ class Subject:
     name: str
     
     def __post_init__(self):
+        # 科目名の正規化
+        normalized = ValidationUtils.normalize_subject_name(self.name)
+        if normalized != self.name:
+            object.__setattr__(self, 'name', normalized)
+        
         validator = SubjectValidator()
         if not validator.is_valid_subject(self.name):
-            raise ValueError(f"Invalid subject: {self.name}")
+            raise ValidationError(f"Invalid subject: {self.name}")
     
     def __str__(self) -> str:
         return self.name
+    
+    def __format__(self, format_spec: str) -> str:
+        """f-string内での表示をサポート"""
+        return str(self)
     
     def is_special_needs_subject(self) -> bool:
         """特別支援教科かどうか判定"""
@@ -84,6 +103,10 @@ class Subject:
         """固定教科（変更禁止）かどうか判定"""
         validator = SubjectValidator()
         return validator.is_fixed_subject(self.name)
+    
+    def __format__(self, format_spec: str) -> str:
+        """フォーマット指定子に対応"""
+        return str(self)
 
 
 @dataclass(frozen=True)
@@ -93,11 +116,15 @@ class Teacher:
     name: str
     
     def __post_init__(self):
-        if not self.name or not self.name.strip():
-            raise ValueError("Teacher name cannot be empty")
+        if not ValidationUtils.validate_teacher_name(self.name):
+            raise ValidationError(f"Invalid teacher name: {self.name}")
     
     def __str__(self) -> str:
         return self.name
+    
+    def __format__(self, format_spec: str) -> str:
+        """f-string内での表示をサポート"""
+        return str(self)
 
 
 @dataclass(frozen=True)
@@ -108,11 +135,8 @@ class ClassReference:
     class_number: int
     
     def __post_init__(self):
-        if self.grade not in [1, 2, 3]:
-            raise ValueError(f"Invalid grade: {self.grade}")
-        validator = ClassValidator()
-        if self.class_number not in validator.all_valid_class_numbers:
-            raise ValueError(f"Invalid class_number: {self.class_number}")
+        if not ValidationUtils.is_valid_class_reference(self.grade, self.class_number):
+            raise ValidationError(f"Invalid class reference: {self.grade}年{self.class_number}組")
     
     @property
     def full_name(self) -> str:
@@ -121,6 +145,10 @@ class ClassReference:
     
     def __str__(self) -> str:
         return self.full_name
+    
+    def __format__(self, format_spec: str) -> str:
+        """f-string内での表示をサポート"""
+        return str(self)
     
     def is_regular_class(self) -> bool:
         """通常学級かどうか判定"""
@@ -140,12 +168,12 @@ class ClassReference:
     def get_parent_class(self) -> 'ClassReference':
         """交流学級の親学級を取得"""
         if not self.is_exchange_class():
-            raise ValueError(f"{self.full_name} is not an exchange class")
+            raise ValidationError(f"{self.full_name} is not an exchange class")
         
         # 交流学級の親学級マッピング
         validator = ClassValidator()
         parent_info = validator.get_exchange_parent_info(self.grade, self.class_number)
         if parent_info is None:
-            raise ValueError(f"Parent class not found for {self.full_name}")
+            raise ValidationError(f"Parent class not found for {self.full_name}")
         parent_grade, parent_class = parent_info[0]
         return ClassReference(parent_grade, parent_class)

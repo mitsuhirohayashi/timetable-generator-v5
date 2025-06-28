@@ -1,0 +1,1283 @@
+============================================================
+　　　　時間割自動生成システム (Ultrathink Perfect Generator)
+============================================================
+実行日時: 2025年06月21日 07:44:24
+
+
+━━━ QandAシステムチェック ━━━
+
+━━━ 学習済みルール ━━━
+システムは3個のルールを学習しています。
+
+教師配置ルール (1件):
+  • 火曜の5時間目を見たところ2−1と2−2に数学が入っています。どちらかの数学を移動させて対応して下さい。...
+
+【ファイル確認】
+✓ /Users/hayashimitsuhiro/Desktop/timetable_v5/data/config/base_timetable.csv (標準時数データ) - 1322 bytes
+✓ /Users/hayashimitsuhiro/Desktop/timetable_v5/data/input/input.csv (希望時間割) - 2571 bytes
+✓ /Users/hayashimitsuhiro/Desktop/timetable_v5/data/input/Follow-up.csv (週次要望) - 2832 bytes
+
+2025-06-21 07:44:24 - src.application.use_cases.use_case_factory - INFO - リファクタリング版のGenerateScheduleUseCaseを使用します
+2025-06-21 07:44:24 - src.application.use_cases.generate_schedule_use_case_refactored - INFO - ================================================================================
+2025-06-21 07:44:24 - src.application.use_cases.generate_schedule_use_case_refactored - INFO - スケジュール生成を開始します（v3.0 - リファクタリング版）
+2025-06-21 07:44:24 - src.application.use_cases.generate_schedule_use_case_refactored - INFO - データディレクトリ: /Users/hayashimitsuhiro/Desktop/timetable_v5/data
+2025-06-21 07:44:24 - src.application.use_cases.generate_schedule_use_case_refactored - INFO - アルゴリズム: Advanced CSP
+2025-06-21 07:44:24 - src.application.use_cases.generate_schedule_use_case_refactored - INFO - 最大反復回数: 100
+2025-06-21 07:44:24 - src.application.use_cases.generate_schedule_use_case_refactored - INFO - 最適化: 会議時間, 体育館使用, 教師負担
+2025-06-21 07:44:24 - src.application.use_cases.generate_schedule_use_case_refactored - INFO - ================================================================================
+2025-06-21 07:44:24 - src.infrastructure.repositories.csv_repository - WARNING - 教員マッピングなし: 2年1組 技家 - この教科は担当教員が設定されていないため、スキップします
+2025-06-21 07:44:24 - src.infrastructure.repositories.csv_repository - WARNING - 教員マッピングなし: 2年2組 技家 - この教科は担当教員が設定されていないため、スキップします
+2025-06-21 07:44:24 - src.infrastructure.repositories.csv_repository - WARNING - 教員マッピングなし: 2年3組 技家 - この教科は担当教員が設定されていないため、スキップします
+2025-06-21 07:44:24 - src.domain.services.exchange_class_service - INFO - 交流学級マッピングを6組読み込みました
+2025-06-21 07:44:24 - src.domain.services.constraint_validator - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.exchange_class_service - INFO - 交流学級マッピングを6組読み込みました
+2025-06-21 07:44:24 - src.domain.services.constraint_validator - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 教師重複制約 (優先度: CRITICAL)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 月曜6校時固定制約 (優先度: CRITICAL)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 固定教科ロック制約 (優先度: CRITICAL)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 日内重複制約 (優先度: HIGH)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 技家実現可能性制約 (優先度: HIGH)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 体育館使用制約（合同体育対応） (優先度: HIGH)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 会議ロック制約 (優先度: HIGH)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 5組同一教科制約 (優先度: HIGH)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 標準時数制約 (優先度: MEDIUM)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 火曜日体育複数クラス実施制約 (優先度: MEDIUM)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 教科妥当性制約 (優先度: MEDIUM)
+2025-06-21 07:44:24 - src.application.services.constraint_registration_service - ERROR - Basics.csv読み込みエラー: '絶対'
+2025-06-21 07:44:24 - src.domain.services.exchange_class_service - INFO - 交流学級マッピングを6組読み込みました
+2025-06-21 07:44:24 - src.domain.services.constraint_validator - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 教師不在制約 (優先度: HIGH)
+2025-06-21 07:44:24 - src.infrastructure.repositories.csv_repository - WARNING - 教員マッピングなし: 2年1組 技家 - この教科は担当教員が設定されていないため、スキップします
+2025-06-21 07:44:24 - src.infrastructure.repositories.csv_repository - WARNING - 教員マッピングなし: 2年2組 技家 - この教科は担当教員が設定されていないため、スキップします
+2025-06-21 07:44:24 - src.infrastructure.repositories.csv_repository - WARNING - 教員マッピングなし: 2年3組 技家 - この教科は担当教員が設定されていないため、スキップします
+2025-06-21 07:44:24 - src.domain.services.exchange_class_service - INFO - 交流学級マッピングを6組読み込みました
+2025-06-21 07:44:24 - src.domain.services.constraint_validator - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.exchange_class_service - INFO - 交流学級マッピングを6組読み込みました
+2025-06-21 07:44:24 - src.domain.services.constraint_validator - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 教師重複制約 (優先度: CRITICAL)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 月曜6校時固定制約 (優先度: CRITICAL)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 固定教科ロック制約 (優先度: CRITICAL)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 日内重複制約 (優先度: HIGH)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 技家実現可能性制約 (優先度: HIGH)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 体育館使用制約（合同体育対応） (優先度: HIGH)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 会議ロック制約 (優先度: HIGH)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 5組同一教科制約 (優先度: HIGH)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 標準時数制約 (優先度: MEDIUM)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 火曜日体育複数クラス実施制約 (優先度: MEDIUM)
+2025-06-21 07:44:24 - src.domain.services.unified_constraint_system - INFO - 制約を登録: 教科妥当性制約 (優先度: MEDIUM)
+2025-06-21 07:44:24 - src.application.services.constraint_registration_service - ERROR - Basics.csv読み込みエラー: '絶対'
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:24 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.application.use_cases.generate_schedule_use_case_refactored - INFO - スケジュール生成を開始...
+2025-06-21 07:44:24 - src.domain.services.exchange_class_service - INFO - 交流学級マッピングを6組読み込みました
+2025-06-21 07:44:24 - src.domain.services.constraint_validator - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v6 - INFO - === ハイブリッドV6時間割生成開始（制約違反学習システム統合版）===
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v6 - INFO - 学習システム状態: 0世代目
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v6 - INFO - 学習済みパターン数: 0
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v6 - INFO - 有効な回避戦略数: 0
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v6 - INFO - 
+フェーズ0: 月曜6限の保護
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v6 - INFO - 
+フェーズ1: 柔軟な標準時数分析と計画
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v6 - INFO - 
+フェーズ2: 5組の同期配置（学習システム使用）
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v6 - INFO - 
+フェーズ3: 交流学級の自立活動配置（学習システム使用）
+2025-06-21 07:44:24 - src.domain.services.exchange_class_service - INFO - 交流学級マッピングを6組読み込みました
+2025-06-21 07:44:24 - src.domain.services.constraint_validator - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - === ハイブリッドV5時間割生成開始（柔軟な標準時数保証版）===
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 
+フェーズ0: 月曜6限の保護
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 
+フェーズ1: 柔軟な標準時数分析と計画
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 
+フェーズ2: 5組の同期配置（柔軟な時数考慮）
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 
+フェーズ3: 交流学級の自立活動配置
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 
+フェーズ4: 柔軟な標準時数保証配置
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO - === 柔軟な標準時数保証システム開始 ===
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO - 
+=== 柔軟な標準時数保証システム結果 ===
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO - 平均満足度: 133.1%
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO - 完全充足クラス: 12/18
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO - 
+科目別達成率:
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO -   生単: 100.0% (3/3)
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO -   美: 139.5% (18/12)
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO -   家: 155.6% (14/9)
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO -   保: 166.7% (55/33)
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO -   技: 166.7% (15/9)
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO -   国: 173.3% (78/45)
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO -   理: 173.8% (73/42)
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO -   社: 175.8% (58/33)
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO -   自立: 176.8% (35/19)
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - INFO -   英: 183.3% (77/42)
+2025-06-21 07:44:24 - src.domain.services.ultrathink.flexible_standard_hours_guarantee_system - WARNING - 
+警告: 60件
+2025-06-21 07:44:24 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 
+フェーズ5: 高度な最適化
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 
+フェーズ6: 最終調整
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 
+=== ハイブリッドV5生成結果（柔軟な標準時数保証版）===
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 総割り当て数: 536
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 制約違反数: 0
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 教師重複数: 6
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 空きスロット数: 4
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 柔軟な満足度: 133.1%
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 完全充足クラス数: 12
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 特別な状況: 0件
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 警告: 60件
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 実行時間: 2.8秒
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 
+科目別達成率（上位5科目）:
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO -   音: 224.8% (29/12)
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO -   日生: 200.0% (6/3)
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO -   作業: 200.0% (6/3)
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO -   数: 184.4% (83/45)
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO -   英: 183.3% (77/42)
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO - 
+達成した改善:
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO -   ✓ 柔軟な標準時数満足度133.1%達成
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO -   ✓ 教師重複を10件未満に削減
+2025-06-21 07:44:27 - src.domain.services.ultrathink.hybrid_schedule_generator_v5 - INFO -   ✓ 全ての制約違反を解消
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.application.services.optimization_orchestration_service - ERROR - 会議時間最適化エラー: MeetingTimeOptimizer.optimize_meeting_times() got an unexpected keyword argument 'max_iterations'
+2025-06-21 07:44:27 - src.application.services.optimization_orchestration_service - ERROR - 体育館使用最適化エラー: GymUsageOptimizer.optimize_gym_usage() got an unexpected keyword argument 'max_iterations'
+2025-06-21 07:44:27 - src.domain.services.teacher_workload_optimizer - INFO - === 教師負担バランス最適化を開始 ===
+2025-06-21 07:44:27 - src.application.services.optimization_orchestration_service - ERROR - 教師負担バランス最適化エラー: TeacherAbsenceAdapter.is_teacher_absent() takes 3 positional arguments but 4 were given
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 月曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 火曜3限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜1限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間追加: 水曜2限
+2025-06-21 07:44:27 - src.domain.services.test_period_protector - INFO - テスト期間を8スロット読み込みました
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO - === 統一制約システム統計 ===
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO - 登録制約数: 12
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -   CRITICAL: 3件
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -     - 教師重複制約
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -     - 月曜6校時固定制約
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -     - 固定教科ロック制約
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -   HIGH: 6件
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -     - 日内重複制約
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -     - 技家実現可能性制約
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -     - 体育館使用制約（合同体育対応）
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -     - 会議ロック制約
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -     - 5組同一教科制約
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -     - 教師不在制約
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -   MEDIUM: 3件
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -     - 標準時数制約
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -     - 火曜日体育複数クラス実施制約
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -     - 教科妥当性制約
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -   LOW: 0件
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -   SUGGESTION: 0件
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO - キャッシュヒット率: 0.00%
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -   ヒット: 0
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -   ミス: 0
+2025-06-21 07:44:27 - src.domain.services.unified_constraint_system - INFO -   サイズ: 0
+2025-06-21 07:44:27 - src.application.use_cases.generate_schedule_use_case_refactored - INFO - スケジュール生成完了: , 割り当て数=536, 制約違反=114件, 実行時間=2.98秒
+【生成結果】
+スケジュール生成完了: , 割り当て数=536, 制約違反=114件, 実行時間=2.98秒
+⚠️  制約違反が 114 件残っています
+
+【出力ファイル確認】
+✓ output.csv が生成されました (3990 bytes)
+
+2025-06-21 07:44:27 - src.infrastructure.repositories.csv_repository - WARNING - 教員マッピングなし: 2年1組 技家 - この教科は担当教員が設定されていないため、スキップします
+2025-06-21 07:44:27 - src.infrastructure.repositories.csv_repository - WARNING - 教員マッピングなし: 2年2組 技家 - この教科は担当教員が設定されていないため、スキップします
+2025-06-21 07:44:27 - src.infrastructure.repositories.csv_repository - WARNING - 教員マッピングなし: 2年3組 技家 - この教科は担当教員が設定されていないため、スキップします
+2025-06-21 07:44:27 - src.infrastructure.repositories.schedule_io.csv_reader - WARNING - クラス1年3組に無効な教科をスキップ: 自立
+2025-06-21 07:44:27 - src.infrastructure.repositories.schedule_io.csv_reader - WARNING - クラス2年1組に無効な教科をスキップ: 自立
+2025-06-21 07:44:27 - src.infrastructure.repositories.schedule_io.csv_reader - WARNING - クラス3年1組に無効な教科をスキップ: 自立
+2025-06-21 07:44:27 - src.infrastructure.repositories.schedule_io.csv_reader - WARNING - クラス3年3組に無効な教科をスキップ: 自立
+2025-06-21 07:44:27 - src.application.use_cases.validate_schedule_use_case - ERROR - スケジュール検証中にエラーが発生しました: NaturalFollowUpParser.__init__() got an unexpected keyword argument 'followup_processor'
+
+━━━ 制約違反の分析 ━━━
+総違反数: 1件
+
+違反タイプ別:
+  • other: 1件
+============================================================
+時間割生成処理が完了しましたが、問題があります。
+============================================================

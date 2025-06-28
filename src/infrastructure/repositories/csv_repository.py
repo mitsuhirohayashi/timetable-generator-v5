@@ -11,16 +11,20 @@ from ...domain.value_objects.time_slot import TimeSlot, ClassReference, Subject,
 from ...domain.value_objects.assignment import Assignment
 from ...domain.value_objects.special_support_hours import SpecialSupportHourMapping, SpecialSupportHourMappingEnhanced
 from ...domain.utils import parse_class_reference
+from ...domain.interfaces.repositories import IScheduleRepository, ISchoolRepository
 from ..config.path_config import path_config
 from .schedule_io.csv_reader import CSVScheduleReader
 from .schedule_io.csv_writer import CSVScheduleWriter
+from .schedule_io.csv_writer_improved import CSVScheduleWriterImproved
 from .teacher_schedule_repository import TeacherScheduleRepository
 # Validation service removed to avoid circular import
 from .teacher_absence_loader import TeacherAbsenceLoader
 from .teacher_mapping_repository import TeacherMappingRepository
+from ...shared.utils.csv_operations import CSVOperations
+from ...shared.mixins.logging_mixin import LoggingMixin
 
 
-class CSVScheduleRepository:
+class CSVScheduleRepository(LoggingMixin, IScheduleRepository):
     """リファクタリング版スケジュールリポジトリ - 各責務を専門クラスに委譲"""
     
     def __init__(
@@ -36,24 +40,61 @@ class CSVScheduleRepository:
             use_enhanced_features: 拡張機能を使用するか
             use_support_hours: 特別支援時数表記を使用するか
         """
+        super().__init__()
         self.base_path = Path(base_path)
-        self.logger = logging.getLogger(__name__)
         self.use_enhanced_features = use_enhanced_features
         self.use_support_hours = use_support_hours
         
         # 責務ごとのコンポーネントを初期化
         self.reader = CSVScheduleReader()
-        self.writer = CSVScheduleWriter(use_support_hours)
+        # 改良版のWriterを使用（5組を確実に出力）
+        self.writer = CSVScheduleWriterImproved(use_support_hours)
+        
+        # 読み込んだSchoolオブジェクトを保持（Writerで使用）
+        self._loaded_school = None
         self.teacher_schedule_repo = TeacherScheduleRepository(use_enhanced_features)
         self.absence_loader = TeacherAbsenceLoader()
         
         # 読み込んだ制約情報
         self._forbidden_cells = {}
+        # テスト期間情報
+        self._test_periods = {}
     
-    def save_schedule(self, schedule: Schedule, filename: str = "output.csv") -> None:
+    def save(self, schedule: Schedule, filename: str = "output.csv") -> None:
         """スケジュールをCSVファイルに保存"""
+        # Schoolオブジェクトがある場合はWriterに設定
+        if self._loaded_school:
+            self.writer.school = self._loaded_school
+        # テスト期間データを復元
+        for (time_slot, class_ref), original_assignment in self._test_periods.items():
+            current_assignment = schedule.get_assignment(time_slot, class_ref)
+            if current_assignment != original_assignment:
+                self.logger.warning(
+                    f"テスト期間のデータが変更されています: {class_ref} {time_slot} "
+                    f"{original_assignment.subject.name} → "
+                    f"{current_assignment.subject.name if current_assignment else '空き'}"
+                )
+                # 元のテスト期間データを復元
+                # ロックされている場合は一時的にアンロック
+                was_locked = schedule.is_locked(time_slot, class_ref)
+                if was_locked:
+                    schedule.unlock_cell(time_slot, class_ref)
+                
+                # 現在の割り当てを削除してから元のデータを復元
+                if current_assignment:
+                    schedule.remove_assignment(time_slot, class_ref)
+                schedule.assign(time_slot, original_assignment)
+                
+                # ロックを復元
+                if was_locked:
+                    schedule.lock_cell(time_slot, class_ref)
+        
         file_path = self._resolve_output_path(filename)
         self.writer.write(schedule, file_path)
+    
+    def load(self, filename: str, school: Optional[School] = None) -> Schedule:
+        """スケジュールを読み込む（loadメソッドのエイリアス）"""
+        return self.load_desired_schedule(filename, school)
     
     def load_desired_schedule(
         self,
@@ -68,6 +109,11 @@ class CSVScheduleRepository:
         
         # 制約情報を保存
         self._forbidden_cells = self.reader.get_forbidden_cells()
+        # テスト期間情報を保存
+        if hasattr(self.reader, 'get_test_periods'):
+            self._test_periods = self.reader.get_test_periods()
+        else:
+            self._test_periods = {}
         
         if school:
             # Grade5Unitに教師不在チェッカーを設定
@@ -118,12 +164,12 @@ class CSVScheduleRepository:
             return self.base_path / filename
 
 
-class CSVSchoolRepository:
+class CSVSchoolRepository(LoggingMixin, ISchoolRepository):
     """学校データのCSV入出力を担当"""
     
     def __init__(self, base_path: Path = Path(".")):
+        super().__init__()
         self.base_path = Path(base_path)
-        self.logger = logging.getLogger(__name__)
         self.teacher_mapping_repo = TeacherMappingRepository(self.base_path)
     
     def load_standard_hours(self, filename: str = "base_timetable.csv") -> Dict[tuple[ClassReference, Subject], float]:
@@ -136,9 +182,7 @@ class CSVSchoolRepository:
         standard_hours = {}
         
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                reader = csv.reader(f)
-                lines = list(reader)
+            lines = CSVOperations.read_csv_raw(str(file_path))
             
             if len(lines) < 3:
                 raise ValueError("標準時数CSVファイルの形式が正しくありません")
@@ -193,12 +237,9 @@ class CSVSchoolRepository:
         
         # 教員マッピングを読み込み
         # self.base_pathが既にdata/configを指している場合は、configを重複させない
-        if str(self.base_path).endswith("config"):
-            teacher_mapping_repo = TeacherMappingRepository(self.base_path)
-            teacher_mapping = teacher_mapping_repo.load_teacher_mapping("teacher_subject_mapping.csv")
-        else:
-            teacher_mapping_repo = TeacherMappingRepository(self.base_path)
-            teacher_mapping = teacher_mapping_repo.load_teacher_mapping("config/teacher_subject_mapping.csv")
+        # Always use just the filename since base_path already points to config
+        teacher_mapping_repo = TeacherMappingRepository(self.base_path)
+        teacher_mapping = teacher_mapping_repo.load_teacher_mapping("teacher_subject_mapping.csv")
         
         for (class_ref, subject), hours in standard_hours.items():
             # クラスを追加
@@ -220,11 +261,16 @@ class CSVSchoolRepository:
                     continue
                 # 自立の場合は通常通り教員マッピングから取得
             
-            # 教員マッピングから実際の教員を取得
-            teacher = teacher_mapping_repo.get_teacher_for_subject_class(teacher_mapping, subject, class_ref)
+            # 教員マッピングから全ての教員を取得（複数教師対応）
+            if hasattr(teacher_mapping_repo, 'get_all_teachers_for_subject_class'):
+                teachers = teacher_mapping_repo.get_all_teachers_for_subject_class(teacher_mapping, subject, class_ref)
+            else:
+                # 後方互換性のため
+                teacher = teacher_mapping_repo.get_teacher_for_subject_class(teacher_mapping, subject, class_ref)
+                teachers = [teacher] if teacher else []
             
             # マッピングにない場合はスキップ（実在の教員のみを使用）
-            if not teacher:
+            if not teachers:
                 # 交流学級の自立以外は正常な状態なので、警告レベルを下げる
                 if class_ref.is_exchange_class():
                     self.logger.debug(f"教員マッピングなし: {class_ref} {subject}")
@@ -232,8 +278,14 @@ class CSVSchoolRepository:
                     self.logger.warning(f"教員マッピングなし: {class_ref} {subject} - この教科は担当教員が設定されていないため、スキップします")
                 continue
             
-            school.assign_teacher_subject(teacher, subject)
-            school.assign_teacher_to_class(teacher, subject, class_ref)
+            # 全ての教師を登録
+            for teacher in teachers:
+                school.add_teacher(teacher)
+                school.assign_teacher_subject(teacher, subject)
+                # 注：assign_teacher_to_classは1人しか登録できないため、
+                # 最初の教師のみを「正式な担当」として登録
+                if teachers.index(teacher) == 0:
+                    school.assign_teacher_to_class(teacher, subject, class_ref)
         
         # 恒久的な教師の休み情報を適用
         permanent_absences = teacher_mapping_repo.get_permanent_absences()
@@ -248,6 +300,10 @@ class CSVSchoolRepository:
                     self.logger.info(f"恒久的休み設定: {teacher_name} - {day}{period}時限")
         
         self.logger.info(f"学校データを構築しました: {school}")
+        
+        # Schoolオブジェクトを保持（CSVWriter用）
+        self._loaded_school = school
+        
         return school
     
     def _get_periods_from_absence_type(self, absence_type: str) -> List[int]:
@@ -285,129 +341,120 @@ class CSVSchoolRepository:
         schedule.grade5_unit = grade5_unit
         
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                reader = csv.reader(f)
-                rows = list(reader)
+            rows = CSVOperations.read_csv_raw(str(file_path))
+            
+            # ヘッダー行をスキップ
+            if len(rows) < 3:
+                self.logger.warning(f"ファイルが短すぎます: {file_path}")
+                return schedule
+            
+            # 各クラスの行を処理
+            for row_idx in range(2, len(rows)):
+                if row_idx >= len(rows) or not rows[row_idx]:
+                    continue
                 
-                # ヘッダー行をスキップ
-                if len(rows) < 3:
-                    self.logger.warning(f"ファイルが短すぎます: {file_path}")
-                    return schedule
+                row = rows[row_idx]
+                if len(row) < 31:  # クラス名 + 30コマ
+                    continue
                 
-                # 各クラスの行を処理
-                for row_idx in range(2, len(rows)):
-                    if row_idx >= len(rows) or not rows[row_idx]:
+                class_name = row[0].strip()
+                if not class_name or '組' not in class_name:
+                    continue
+                
+                # クラス参照を作成
+                try:
+                    grade, class_num = self._parse_class_name(class_name)
+                    class_ref = ClassReference(grade, class_num)
+                except ValueError:
+                    self.logger.warning(f"無効なクラス名: {class_name}")
+                    continue
+                
+                # 5組かどうか判定
+                is_grade5 = class_num == 5
+                
+                # 各時限の割り当てを処理
+                for col_idx in range(1, min(31, len(row))):
+                    subject_name = row[col_idx].strip()
+                    
+                    if not subject_name:
                         continue
                     
-                    row = rows[row_idx]
-                    if len(row) < 31:  # クラス名 + 30コマ
+                    # 時間枠を計算
+                    day_idx = (col_idx - 1) // 6
+                    period = ((col_idx - 1) % 6) + 1
+                    days = ["月", "火", "水", "木", "金"]
+                    if day_idx >= len(days):
                         continue
                     
-                    class_name = row[0].strip()
-                    if not class_name or '組' not in class_name:
+                    time_slot = TimeSlot(days[day_idx], period)
+                    
+                    # 無効な教科名をスキップ
+                    if subject_name == '0':
+                        self.logger.warning(f"無効な教科名をスキップ: {subject_name} (Invalid subject: {subject_name})")
                         continue
                     
-                    # クラス参照を作成
-                    try:
-                        grade, class_num = self._parse_class_name(class_name)
-                        class_ref = ClassReference(grade, class_num)
-                    except ValueError:
-                        self.logger.warning(f"無効なクラス名: {class_name}")
+                    # 「非○○」形式の場合、配置禁止として記録
+                    if subject_name.startswith('非'):
+                        forbidden_subject = subject_name[1:]
+                        self._add_forbidden_cell(class_ref, time_slot, forbidden_subject)
+                        self.logger.info(f"セル配置禁止を追加: {class_ref}の{time_slot}に{forbidden_subject}を配置禁止")
                         continue
                     
-                    # 5組かどうか判定
-                    is_grade5 = class_num == 5
-                    
-                    # 各時限の割り当てを処理
-                    for col_idx in range(1, min(31, len(row))):
-                        subject_name = row[col_idx].strip()
-                        
-                        if not subject_name:
-                            continue
-                        
-                        # 時間枠を計算
-                        day_idx = (col_idx - 1) // 6
-                        period = ((col_idx - 1) % 6) + 1
-                        days = ["月", "火", "水", "木", "金"]
-                        if day_idx >= len(days):
-                            continue
-                        
-                        time_slot = TimeSlot(days[day_idx], period)
-                        
-                        # 無効な教科名をスキップ
-                        if subject_name == '0':
-                            self.logger.warning(f"無効な教科名をスキップ: {subject_name} (Invalid subject: {subject_name})")
-                            continue
-                        
-                        # 「非○○」形式の場合、配置禁止として記録
-                        if subject_name.startswith('非'):
-                            forbidden_subject = subject_name[1:]
-                            self._add_forbidden_cell(class_ref, time_slot, forbidden_subject)
-                            self.logger.info(f"セル配置禁止を追加: {class_ref}の{time_slot}に{forbidden_subject}を配置禁止")
-                            continue
-                        
-                        # 固定教科の場合はロック
-                        if subject_name in ['欠', 'YT', '道', '学', '学活', '学総', '総', '総合', '行']:
-                            subject = Subject(subject_name)
-                            teacher = Teacher("欠課" if subject_name == '欠' else f"{subject_name}担当")
-                            assignment = Assignment(class_ref, subject, teacher)
-                            
-                            if is_grade5:
-                                # 5組の場合、ユニットに登録
-                                grade5_unit.assign(time_slot, subject, teacher)
-                                grade5_unit.lock_slot(time_slot)
-                            else:
-                                schedule.assign(time_slot, assignment)
-                                schedule.lock_cell(time_slot, class_ref)
-                            continue
-                        
-                        # 教師を取得
-                        teacher = school.get_assigned_teacher(Subject(subject_name), class_ref)
-                        if not teacher:
-                            # 教師が見つからない場合、マッピングリポジトリから取得
-                            teacher_name = self.teacher_mapping_repo.get_teacher_for_subject(
-                                subject_name, grade, class_num)
-                            if teacher_name:
-                                teacher = Teacher(teacher_name)
-                            else:
-                                teacher = Teacher(f"{subject_name}担当")
-                        
-                        # 教師不在チェック
-                        if self.absence_loader.is_teacher_absent(
-                            teacher.name, days[day_idx], period):
-                            self.logger.warning(
-                                f"教師不在のため割り当てをスキップ: {class_ref} {time_slot} "
-                                f"{subject_name}({teacher.name}先生)")
-                            
-                            # 5組の場合は代替教科を探す
-                            if is_grade5:
-                                alt_subject = self._find_alternative_for_grade5(
-                                    school, class_ref, time_slot, subject_name, teacher.name)
-                                if alt_subject:
-                                    subject = Subject(alt_subject['subject'])
-                                    teacher = Teacher(alt_subject['teacher'])
-                                    grade5_unit.assign(time_slot, subject, teacher)
-                                    self.logger.info(
-                                        f"5組代替割り当て: {time_slot} {alt_subject['subject']}"
-                                        f"({alt_subject['teacher']}先生)")
-                            continue
-                        
-                        # 通常の割り当て
+                    # 固定教科の場合はロック
+                    if subject_name in ['欠', 'YT', '道', '学', '学活', '学総', '総', '総合', '行']:
                         subject = Subject(subject_name)
-                        assignment = Assignment(class_ref, subject, teacher)
+                        # 「欠」の場合は教員なし、それ以外は担当教員を設定
+                        if subject_name == '欠':
+                            assignment = Assignment(class_ref, subject, None)
+                        else:
+                            teacher = Teacher(f"{subject_name}担当")
+                            assignment = Assignment(class_ref, subject, teacher)
                         
                         if is_grade5:
-                            grade5_unit.assign(time_slot, subject, teacher)
-                            self.logger.info(f"5組ユニット: {time_slot}に{subject}({teacher})を割り当て")
+                            # 5組の場合、ユニットに登録
+                            # 「欠」の場合はteacherがNone
+                            if subject_name == '欠':
+                                grade5_unit.assign(time_slot, subject, None)
+                            else:
+                                grade5_unit.assign(time_slot, subject, teacher)
+                            grade5_unit.lock_slot(time_slot)
                         else:
                             schedule.assign(time_slot, assignment)
+                            schedule.lock_cell(time_slot, class_ref)
+                        continue
+                    
+                    # 教師を取得
+                    teacher = school.get_assigned_teacher(Subject(subject_name), class_ref)
+                    if not teacher:
+                        # 教師が見つからない場合、マッピングリポジトリから取得
+                        teacher_name = self.teacher_mapping_repo.get_teacher_for_subject(
+                            subject_name, grade, class_num)
+                        if teacher_name:
+                            teacher = Teacher(teacher_name)
+                        else:
+                            teacher = Teacher(f"{subject_name}担当")
+                    
+                    # 教師不在チェックは読み込み時には行わない
+                    # 初期スケジュールの読み込みでは、教師不在でも割り当てを保持する
+                    # （教師不在による削除は後の処理で行う）
+                    
+                    # 通常の割り当て
+                    subject = Subject(subject_name)
+                    assignment = Assignment(class_ref, subject, teacher)
+                    
+                    if is_grade5:
+                        grade5_unit.assign(time_slot, subject, teacher)
+                        self.logger.info(f"5組ユニット: {time_slot}に{subject}({teacher})を割り当て")
+                    else:
+                        schedule.assign(time_slot, assignment)
                 
-                # 5組の初期同期処理
-                self._sync_grade5_initial_enhanced(schedule, grade5_unit)
-                
-                # 交流学級の初期同期処理
-                self._sync_exchange_classes_initial_enhanced(schedule, school)
-                
+            
+            # 5組の初期同期処理
+            self._sync_grade5_initial_enhanced(schedule, grade5_unit)
+            
+            # 交流学級の初期同期処理
+            self._sync_exchange_classes_initial_enhanced(schedule, school)
+            
             self.logger.info(f"希望時間割を読み込みました: {file_path}")
             # 読み込み完了後に固定科目保護を再有効化
             schedule.enable_fixed_subject_protection()
@@ -547,52 +594,55 @@ class CSVSchoolRepository:
         file_path.parent.mkdir(parents=True, exist_ok=True)
         
         try:
-            with open(file_path, 'w', encoding='utf-8', newline='') as f:
-                writer = csv.writer(f, quoting=csv.QUOTE_ALL)
+            # データを準備
+            all_rows = []
+            
+            # ヘッダー行
+            header = ["教員"]
+            for day in ["月", "火", "水", "木", "金"]:
+                for period in range(1, 7):
+                    header.append(day)
+            all_rows.append(header)
                 
-                # ヘッダー行
-                header = ["教員"]
+            # 校時行
+            period_row = [""]
+            for day in ["月", "火", "水", "木", "金"]:
+                for period in range(1, 7):
+                    period_row.append(str(period))
+            all_rows.append(period_row)
+                
+            # 各教師の行
+            all_teachers = list(school.get_all_teachers())
+            
+            for teacher in sorted(all_teachers, key=lambda t: t.name):
+                row = [teacher.name]
+                
                 for day in ["月", "火", "水", "木", "金"]:
                     for period in range(1, 7):
-                        header.append(day)
-                writer.writerow(header)
+                        time_slot = TimeSlot(day, period)
+                        
+                        # この時間の授業を探す
+                        cell_content = ""
+                        for class_ref in school.get_all_classes():
+                            assignment = schedule.get_assignment(time_slot, class_ref)
+                            if assignment and assignment.teacher and assignment.teacher.name == teacher.name:
+                                # クラス表示形式の選択
+                                if self.use_enhanced_features:
+                                    cell_content = f"{class_ref.short_name_alt}"
+                                else:
+                                    cell_content = f"{class_ref.grade}-{class_ref.class_number}"
+                                break
+                        
+                        row.append(cell_content)
                 
-                # 校時行
-                period_row = [""]
-                for day in ["月", "火", "水", "木", "金"]:
-                    for period in range(1, 7):
-                        period_row.append(str(period))
-                writer.writerow(period_row)
+                all_rows.append(row)
                 
-                # 各教師の行
-                all_teachers = list(school.get_all_teachers())
-                
-                for teacher in sorted(all_teachers, key=lambda t: t.name):
-                    row = [teacher.name]
-                    
-                    for day in ["月", "火", "水", "木", "金"]:
-                        for period in range(1, 7):
-                            time_slot = TimeSlot(day, period)
-                            
-                            # この時間の授業を探す
-                            cell_content = ""
-                            for class_ref in school.get_all_classes():
-                                assignment = schedule.get_assignment(time_slot, class_ref)
-                                if assignment and assignment.teacher and assignment.teacher.name == teacher.name:
-                                    # クラス表示形式の選択
-                                    if self.use_enhanced_features:
-                                        cell_content = f"{class_ref.short_name_alt}"
-                                    else:
-                                        cell_content = f"{class_ref.grade}-{class_ref.class_number}"
-                                    break
-                            
-                            row.append(cell_content)
-                    
-                    writer.writerow(row)
-                
-                # 拡張機能が有効な場合は会議時間の行も追加
-                if self.use_enhanced_features:
-                    self._add_meeting_rows(writer)
+            # 拡張機能が有効な場合は会議時間の行も追加
+            if self.use_enhanced_features:
+                self._add_meeting_rows_to_list(all_rows)
+            
+            # CSVOperationsを使用して書き込み
+            CSVOperations.write_csv_raw(str(file_path), all_rows, quoting=csv.QUOTE_ALL)
             
             if self.use_enhanced_features or self.use_support_hours:
                 self.logger.info(f"教師別時間割を保存しました（5組時数表記対応）: {file_path}")
@@ -604,6 +654,13 @@ class CSVSchoolRepository:
             raise
     
     def _add_meeting_rows(self, writer) -> None:
+        """会議時間の行を追加（旧バージョン - 互換性のため残存）"""
+        all_rows = []
+        self._add_meeting_rows_to_list(all_rows)
+        for row in all_rows:
+            writer.writerow(row)
+    
+    def _add_meeting_rows_to_list(self, rows_list: List[List[str]]) -> None:
         """会議時間の行を追加"""
         # 会議情報（理想の結果から）
         meetings = {
@@ -622,11 +679,11 @@ class CSVSchoolRepository:
         }
         
         # 空行を追加
-        writer.writerow([""] * 31)
+        rows_list.append([""] * 31)
         
         # 会議行を追加
         for teacher, schedule in meetings.items():
-            writer.writerow([teacher] + schedule)
+            rows_list.append([teacher] + schedule)
     
     def _get_default_teacher_name(self, subject: Subject, class_ref: ClassReference) -> str:
         """教科・クラスに基づくデフォルト教員名を生成 - 削除予定"""

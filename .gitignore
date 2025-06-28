@@ -43,6 +43,8 @@ desktop.ini
 # Project specific
 data/output/*.csv
 !data/output/.gitkeep
+!data/output/output.csv
+!data/output/teacher_schedule.csv
 data/input/*.csv
 !data/input/input.csv
 !data/input/Follow-up.csv
@@ -50,6 +52,26 @@ data/input/*.csv
 *.tmp
 *.backup
 *.bak
+
+# Temporary files in root directory
+/*_test.txt
+/*_test*.log
+/*_analysis.txt
+/*_report.json
+/*_summary.md
+/*_summary.txt
+/test_*.py
+/generate_*.txt
+/ultrathink_*.txt
+/v[0-9]*_*.md
+/temp/
+
+# Analysis and report files
+*_analysis.json
+*_analysis.txt
+*_report.json
+*_report.txt
+*_restoration_*.json
 
 # Documentation builds
 docs/_build/

@@ -5,6 +5,11 @@ from collections import defaultdict
 from ..value_objects.time_slot import TimeSlot, ClassReference, Subject, Teacher
 from ..value_objects.assignment import Assignment, ConstraintViolation
 from .grade5_unit import Grade5Unit
+from ..exceptions import (
+    SubjectAssignmentException,
+    FixedSubjectModificationException,
+    InvalidAssignmentException
+)
 
 
 class Schedule:
@@ -21,6 +26,10 @@ class Schedule:
         from ..policies.fixed_subject_protection_policy import FixedSubjectProtectionPolicy
         self._fixed_subject_policy = FixedSubjectProtectionPolicy()
         self._fixed_subject_protection_enabled = True
+        # 初期読み込み中は5組の特別処理を無効化
+        self._grade5_sync_enabled = True
+        # テスト期間情報を格納 (day -> [periods])
+        self.test_periods: Dict[str, List[int]] = {}
     
     @property
     def grade5_unit(self) -> Grade5Unit:
@@ -30,22 +39,49 @@ class Schedule:
     def assign(self, time_slot: TimeSlot, assignment: Assignment) -> None:
         """指定された時間枠にクラスの割り当てを設定"""
         if self.is_locked(time_slot, assignment.class_ref):
-            raise ValueError(f"Cell is locked: {time_slot} - {assignment.class_ref}")
+            raise InvalidAssignmentException(f"セルがロックされています: {time_slot} - {assignment.class_ref}")
+        
+        # テスト期間保護チェック
+        if self.is_test_period(time_slot):
+            # テスト期間中は既存の割り当てを保護
+            existing = self.get_assignment(time_slot, assignment.class_ref)
+            if existing:
+                # 既存の割り当てと同じ場合は許可（再設定）
+                if (existing.subject.name == assignment.subject.name and
+                    (not existing.teacher or not assignment.teacher or 
+                     existing.teacher.name == assignment.teacher.name)):
+                    # 同じ内容なので処理を続行
+                    pass
+                else:
+                    # 異なる内容への変更は拒否
+                    raise InvalidAssignmentException(
+                        f"テスト期間中は変更できません: {time_slot} - {assignment.class_ref} "
+                        f"(現在: {existing.subject.name}, 変更先: {assignment.subject.name})"
+                    )
         
         # 固定科目保護チェック（有効な場合のみ）
         if self._fixed_subject_protection_enabled:
             if not self._fixed_subject_policy.can_modify_slot(self, time_slot, assignment.class_ref, assignment):
-                raise ValueError(f"Cannot modify fixed subject slot: {time_slot} - {assignment.class_ref}")
+                current_assignment = self.get_assignment(time_slot, assignment.class_ref)
+                if current_assignment:
+                    raise FixedSubjectModificationException(
+                        current_assignment.subject.name, time_slot
+                    )
+                else:
+                    raise InvalidAssignmentException(
+                        f"固定科目スロットを変更できません: {time_slot} - {assignment.class_ref}"
+                    )
         
-        # 5組の場合は特別処理
-        if assignment.class_ref in self._grade5_classes:
+        # 5組の場合は特別処理（5組同期が有効な場合のみ）
+        if self._grade5_sync_enabled and assignment.class_ref in self._grade5_classes:
             # 5組全体に同じ教科・教員を割り当て
             # ただし、ロックされているセルはスキップ
             can_assign_to_unit = True
+            locked_classes = []
             for grade5_class in self._grade5_classes:
                 if self.is_locked(time_slot, grade5_class):
                     can_assign_to_unit = False
-                    break
+                    locked_classes.append(grade5_class)
             
             if can_assign_to_unit:
                 # 全ての5組セルがロックされていない場合のみユニットに割り当て
@@ -59,25 +95,68 @@ class Schedule:
                 # 一部がロックされている場合は、個別に割り当て（同期は崩れる可能性がある）
                 if not self.is_locked(time_slot, assignment.class_ref):
                     self._assignments[time_slot][assignment.class_ref] = assignment
+                else:
+                    # ロックされている場合はエラー（既にチェック済みだが念のため）
+                    raise InvalidAssignmentException(
+                        f"セルがロックされています（5組同期中）: {time_slot} - {assignment.class_ref} "
+                        f"(ロック済み: {locked_classes})"
+                    )
         else:
+            # 5組同期が無効の場合、または5組以外の場合は通常の割り当て
             self._assignments[time_slot][assignment.class_ref] = assignment
     
     def get_assignment(self, time_slot: TimeSlot, class_ref: ClassReference) -> Optional[Assignment]:
         """指定された時間枠・クラスの割り当てを取得"""
         # 5組の場合は特別処理
         if class_ref in self._grade5_classes:
-            return self._grade5_unit.get_assignment(time_slot, class_ref)
+            # Grade5Unitから取得を試みる
+            unit_assignment = self._grade5_unit.get_assignment(time_slot, class_ref)
+            if unit_assignment:
+                return unit_assignment
+            
+            # Grade5Unitに無い場合は、通常の_assignmentsから取得（CSV読み込み時のデータ）
+            direct_assignment = self._assignments[time_slot].get(class_ref)
+            if direct_assignment:
+                # Grade5Unitに同期（5組同期が有効な場合のみ）
+                if self._grade5_sync_enabled:
+                    # 他の5組クラスも同じ教科を持っているか確認
+                    all_have_same = True
+                    for other_class in self._grade5_classes:
+                        other_assignment = self._assignments[time_slot].get(other_class)
+                        if not other_assignment or other_assignment.subject != direct_assignment.subject:
+                            all_have_same = False
+                            break
+                    
+                    # 全ての5組が同じ教科を持っている場合のみGrade5Unitに同期
+                    if all_have_same:
+                        try:
+                            self._grade5_unit.assign(time_slot, direct_assignment.subject, direct_assignment.teacher)
+                        except Exception:
+                            # ロックされている場合などは無視
+                            pass
+                
+                return direct_assignment
+            
+            return None
         return self._assignments[time_slot].get(class_ref)
     
     def remove_assignment(self, time_slot: TimeSlot, class_ref: ClassReference) -> None:
         """指定された時間枠・クラスの割り当てを削除"""
         if self.is_locked(time_slot, class_ref):
-            raise ValueError(f"Cell is locked: {time_slot} - {class_ref}")
+            raise InvalidAssignmentException(f"セルがロックされています: {time_slot} - {class_ref}")
         
         # 固定科目保護チェック（有効な場合のみ）
         if self._fixed_subject_protection_enabled:
             if not self._fixed_subject_policy.can_modify_slot(self, time_slot, class_ref, None):
-                raise ValueError(f"Cannot remove from fixed subject slot: {time_slot} - {class_ref}")
+                current_assignment = self.get_assignment(time_slot, class_ref)
+                if current_assignment:
+                    raise FixedSubjectModificationException(
+                        current_assignment.subject.name, time_slot
+                    )
+                else:
+                    raise InvalidAssignmentException(
+                        f"固定科目スロットから削除できません: {time_slot} - {class_ref}"
+                    )
         
         # 5組の場合は特別処理
         if class_ref in self._grade5_classes:
@@ -93,12 +172,13 @@ class Schedule:
     
     def lock_cell(self, time_slot: TimeSlot, class_ref: ClassReference) -> None:
         """セルをロック（変更禁止）"""
-        # 5組の場合は全5組をロック
-        if class_ref in self._grade5_classes:
+        # 5組の場合は全5組をロック（5組同期が有効な場合のみ）
+        if self._grade5_sync_enabled and class_ref in self._grade5_classes:
             self._grade5_unit.lock_slot(time_slot)
             for grade5_class in self._grade5_classes:
                 self._locked_cells.add((time_slot, grade5_class))
         else:
+            # 5組同期が無効の場合、または5組以外の場合は個別にロック
             self._locked_cells.add((time_slot, class_ref))
     
     def unlock_cell(self, time_slot: TimeSlot, class_ref: ClassReference) -> None:
@@ -113,8 +193,8 @@ class Schedule:
     
     def is_locked(self, time_slot: TimeSlot, class_ref: ClassReference) -> bool:
         """セルがロックされているかどうか判定"""
-        # 5組の場合は特別処理
-        if class_ref in self._grade5_classes:
+        # 5組の場合は特別処理（5組同期が有効な場合のみ）
+        if self._grade5_sync_enabled and class_ref in self._grade5_classes:
             return self._grade5_unit.is_locked(time_slot)
         return (time_slot, class_ref) in self._locked_cells
     
@@ -125,6 +205,14 @@ class Schedule:
     def enable_fixed_subject_protection(self) -> None:
         """固定科目保護を有効化"""
         self._fixed_subject_protection_enabled = True
+    
+    def disable_grade5_sync(self) -> None:
+        """5組同期を一時的に無効化"""
+        self._grade5_sync_enabled = False
+    
+    def enable_grade5_sync(self) -> None:
+        """5組同期を有効化"""
+        self._grade5_sync_enabled = True
     
     def get_all_assignments(self) -> List[tuple[TimeSlot, Assignment]]:
         """全ての割り当てを取得"""
@@ -141,6 +229,20 @@ class Schedule:
             result.append((time_slot, assignment))
         
         return result
+    
+    def is_test_period(self, time_slot: TimeSlot) -> bool:
+        """指定されたタイムスロットがテスト期間かどうか"""
+        if time_slot.day in self.test_periods:
+            return time_slot.period in self.test_periods[time_slot.day]
+        return False
+    
+    def set_test_periods(self, test_periods: Set[tuple[str, int]]) -> None:
+        """テスト期間を設定"""
+        self.test_periods.clear()
+        for day, period in test_periods:
+            if day not in self.test_periods:
+                self.test_periods[day] = []
+            self.test_periods[day].append(period)
     
     def get_assignments_by_time_slot(self, time_slot: TimeSlot) -> List[Assignment]:
         """指定された時間枠の全ての割り当てを取得"""
@@ -201,10 +303,27 @@ class Schedule:
         return result
     
     def is_teacher_available(self, time_slot: TimeSlot, teacher: Teacher) -> bool:
-        """指定された時間枠で教員が空いているかどうか判定"""
-        assignments = self.get_teacher_at_time(time_slot, teacher)
-        # 5組の教員は3クラス同時に教えるため、特別な判定は不要
-        return len(assignments) == 0
+        """指定された時間枠で教員が空いているかどうかを厳密に判定"""
+        if not teacher:
+            return True
+
+        assignments = self.get_assignments_by_time_slot(time_slot)
+        teacher_assignments = [a for a in assignments if a.involves_teacher(teacher)]
+
+        if not teacher_assignments:
+            return True
+
+        # 5組の合同授業を考慮
+        is_grade5_class = any(a.class_ref in self._grade5_classes for a in teacher_assignments)
+        if is_grade5_class:
+            # 5組の授業を担当している場合、他の5組以外のクラスとの重複は許されない
+            non_grade5_assignments = [a for a in teacher_assignments if a.class_ref not in self._grade5_classes]
+            if non_grade5_assignments:
+                return False # 5組と通常クラスの重複
+            return True # 5組同士の重複は許可
+
+        # 通常のクラスで重複がある場合は許されない
+        return len(teacher_assignments) == 0
     
     def get_empty_slots(self, class_ref: ClassReference) -> List[TimeSlot]:
         """指定されたクラスの空いている時間枠を取得"""

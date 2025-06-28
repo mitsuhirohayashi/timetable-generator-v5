@@ -1,12 +1,14 @@
 """制約システムの基盤クラス"""
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Iterator
 from dataclasses import dataclass
 
 from ..entities.schedule import Schedule
 from ..entities.school import School
 from ..value_objects.assignment import ConstraintViolation
+from ..value_objects.time_slot import TimeSlot
+from ..constants import WEEKDAYS, PERIODS
 
 
 class ConstraintType(Enum):
@@ -71,6 +73,12 @@ class Constraint(ABC):
     def __lt__(self, other):
         """優先度による比較（高い優先度が先）"""
         return self.priority.value > other.priority.value
+    
+    def iterate_all_time_slots(self) -> Iterator[TimeSlot]:
+        """全ての時間枠をイテレート（共通ユーティリティメソッド）"""
+        for day in WEEKDAYS:
+            for period in PERIODS:
+                yield TimeSlot(day, period)
 
 
 class HardConstraint(Constraint):

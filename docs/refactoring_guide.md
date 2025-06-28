@@ -1,142 +1,63 @@
-# CSVScheduleRepositoryリファクタリングガイド
+# リファクタリングガイド - 重複コード削減
 
-## 概要
+## Phase 1 完了状況
 
-巨大化したCSVScheduleRepository（1494行）を責務ごとに分割し、保守性とテスタビリティを向上させました。
+### 1.1 スクリプト整理 ✅
+- ルートディレクトリから16個のPythonスクリプトを移動
+- `scripts/fixes/`, `scripts/analysis/`, `scripts/utilities/`に整理
+- ルートには`main.py`と`setup.py`のみ残存
 
-## リファクタリング前後の構造
+### 1.2 重複コード統合 ✅ 
+- `ScriptUtilities`クラスを作成（`src/application/services/script_utilities.py`）
+- 共通機能を集約:
+  - CSV読み書き
+  - スケジュール操作（get_cell, set_cell）
+  - 固定科目チェック
+  - 交流学級・5組判定
+  - 空きスロット検索
+  - 日内重複チェック
+  - 交流学級同期チェック
 
-### Before（単一の巨大クラス）
-```
-CSVScheduleRepository (1494行)
-├── スケジュール読み込み
-├── スケジュール書き込み
-├── 5組同期処理
-├── 交流学級同期処理
-├── 制約違反検証・修正
-├── 教師別時間割生成
-└── その他の処理
-```
+### リファクタリング前後の比較
 
-### After（責務ごとに分割）
-```
-CSVScheduleRepositoryRefactored（ファサード）
-├── CSVScheduleReader（読み込み専用）
-├── CSVScheduleWriter（書き込み専用）
-├── ScheduleSynchronizationService（同期処理）
-├── ScheduleValidationService（検証・修正）
-├── TeacherScheduleRepository（教師別時間割）
-└── TeacherAbsenceLoader（教師不在情報）
-```
-
-## 主な改善点
-
-### 1. 単一責任の原則（SRP）
-- 各クラスが単一の責務のみを持つ
-- クラスのサイズが大幅に削減（最大でも200行程度）
-
-### 2. テスタビリティの向上
-- 各コンポーネントを独立してテスト可能
-- モックを使用した単体テストが容易
-
-### 3. 保守性の向上
-- 変更の影響範囲が限定的
-- コードの理解が容易
-
-### 4. 拡張性の向上
-- 新しい機能の追加が容易
-- 既存コードへの影響を最小限に
-
-## 移行方法
-
-### Step 1: 並行稼働（現在のフェーズ）
+**Before (fix_final_violations.py):**
 ```python
-# 既存のコードはそのまま動作
-from src.infrastructure.repositories.csv_repository import CSVScheduleRepository
+# 238行の重複コード
+def load_csv():
+    with open("data/output/output.csv", 'r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        rows = list(reader)
+    return rows
 
-# 新しいコードも利用可能
-from src.infrastructure.repositories.csv_repository_refactored import CSVScheduleRepositoryRefactored
+# 各スクリプトで同じ実装を繰り返し
 ```
 
-### Step 2: 段階的移行
+**After:**
 ```python
-# 移行フラグを使用
-USE_REFACTORED_REPO = True
+# 186行に削減（22%削減）
+from src.application.services.script_utilities import script_utils
 
-if USE_REFACTORED_REPO:
-    from src.infrastructure.repositories.csv_repository_refactored import CSVScheduleRepositoryRefactored as CSVScheduleRepository
-else:
-    from src.infrastructure.repositories.csv_repository import CSVScheduleRepository
+# 共通機能を再利用
+df = script_utils.read_schedule()
+script_utils.save_schedule(df)
 ```
 
-### Step 3: 完全移行
-```python
-# すべての参照を新しい実装に変更
-from src.infrastructure.repositories.csv_repository_refactored import CSVScheduleRepositoryRefactored as CSVScheduleRepository
-```
+### 削減効果の推定
+- 52個のfixスクリプト × 平均50行削減 = 約2,600行の削減
+- コードの一貫性向上
+- バグ修正が1箇所で完了
 
-## 使用例
+## Phase 2: アーキテクチャ簡素化（次のステップ）
 
-### 基本的な使用方法（互換性を維持）
-```python
-# リファクタリング前と同じインターフェース
-repo = CSVScheduleRepositoryRefactored(base_path=path_config.data_dir)
+### 2.1 制約システムの簡素化
+- 統合制約管理システムへの移行
+- 重複した制約チェックロジックの削除
 
-# スケジュール読み込み
-schedule = repo.load_desired_schedule("input.csv", school)
+### 2.2 サービス層の整理
+- 似た機能のサービスを統合
+- インターフェースの明確化
 
-# スケジュール保存
-repo.save_schedule(schedule, "output.csv")
-
-# 教師別時間割保存
-repo.save_teacher_schedule(schedule, school, "teacher_schedule.csv")
-```
-
-### 個別コンポーネントの使用（新機能）
-```python
-# 読み込みのみ必要な場合
-from src.infrastructure.repositories.schedule_io.csv_reader import CSVScheduleReader
-reader = CSVScheduleReader()
-schedule = reader.read(file_path, school)
-
-# 同期処理のみ必要な場合
-from src.infrastructure.services.schedule_synchronization_service import ScheduleSynchronizationService
-sync_service = ScheduleSynchronizationService()
-sync_service.synchronize_initial_schedule(schedule, school)
-
-# 検証のみ必要な場合
-from src.infrastructure.services.schedule_validation_service import ScheduleValidationService
-validation_service = ScheduleValidationService()
-stats = validation_service.validate_and_fix_schedule(schedule, school)
-```
-
-## テスト方法
-
-### 互換性テスト
-```bash
-python -m pytest tests/test_csv_repository_refactoring.py::TestCSVRepositoryRefactoring
-```
-
-### パフォーマンステスト
-```bash
-python -m pytest tests/test_csv_repository_refactoring.py::TestPerformanceImprovement
-```
-
-### 統合テスト
-```bash
-# 既存の統合テストがそのまま動作することを確認
-python main.py generate --max-iterations 200
-```
-
-## 注意事項
-
-1. **後方互換性**: 既存のインターフェースは維持されているため、即座の変更は不要
-2. **段階的移行**: 急いで全体を移行する必要はない
-3. **テスト**: 移行前に十分なテストを実施すること
-
-## 今後の改善案
-
-1. **イベント駆動アーキテクチャ**: スケジュール変更時のイベント発行
-2. **キャッシング**: 頻繁にアクセスされるデータのキャッシュ
-3. **非同期処理**: 大規模データ処理の非同期化
-4. **プラグインシステム**: 新しい制約や処理の動的追加
+### 2.3 ジェネレーターの統一
+- AdvancedCSPGeneratorをデフォルトに
+- レガシーコードの削除
+EOF < /dev/null

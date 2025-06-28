@@ -1,6 +1,5 @@
 """拡張Follow-up.csv解析パーサー - テスト期間保護を含む自然言語処理"""
 import re
-import logging
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional, Set
 from dataclasses import dataclass
@@ -11,6 +10,7 @@ from ...domain.constraints.teacher_absence_constraint import TeacherAbsenceConst
 from ...domain.constraints.meeting_lock_constraint import MeetingLockConstraint
 # from ...domain.constraints.test_period_exclusion import TestPeriodProtectionConstraint
 from ...domain.value_objects.time_slot import TimeSlot
+from ...shared.mixins.logging_mixin import LoggingMixin
 
 
 @dataclass
@@ -49,12 +49,12 @@ class ProtectedSlot:
     affected_classes: Optional[List[str]] = None
 
 
-class EnhancedFollowUpParser:
+class EnhancedFollowUpParser(LoggingMixin):
     """拡張版Follow-up.csv解析パーサー"""
     
     def __init__(self, base_path: Path = Path(".")):
+        super().__init__()
         self.base_path = Path(base_path)
-        self.logger = logging.getLogger(__name__)
         self.current_day = None
         
         # 解析結果を格納
@@ -310,7 +310,18 @@ class EnhancedFollowUpParser:
                     })
             
             if absence_list:
-                constraints.append(TeacherAbsenceConstraint(absence_list))
+                # TeacherAbsenceLoaderを更新
+                from ..repositories.teacher_absence_loader import TeacherAbsenceLoader
+                from ..di_container import get_container, ITeacherAbsenceRepository
+                
+                # TeacherAbsenceLoaderインスタンスを取得して更新
+                absence_repo = get_container().resolve(ITeacherAbsenceRepository)
+                if hasattr(absence_repo, '_loader') and hasattr(absence_repo._loader, 'update_absences_from_parsed_data'):
+                    absence_repo._loader.update_absences_from_parsed_data(self.teacher_absences)
+                    self.logger.info(f"教師不在情報を{len(self.teacher_absences)}件ロードしました")
+                
+                # TeacherAbsenceConstraintは引数なしで呼び出す（DIコンテナから自動的にリポジトリを取得）
+                constraints.append(TeacherAbsenceConstraint())
                 self.logger.info(f"教員不在制約を生成: {len(absence_list)}件")
         
         # 会議制約

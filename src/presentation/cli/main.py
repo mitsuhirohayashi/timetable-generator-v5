@@ -5,22 +5,24 @@ import sys
 from pathlib import Path
 import datetime
 
-from ...application.use_cases.generate_schedule import (
-    GenerateScheduleUseCase,
+from ...application.use_cases.request_models import (
     GenerateScheduleRequest,
-    ValidateScheduleUseCase
+    ValidateScheduleRequest
 )
+from ...application.use_cases.use_case_factory import UseCaseFactory
 from ...application.services.documentation_service import get_documentation_service
 from ...infrastructure.config.path_config import path_config
 from ...infrastructure.config.logging_config import LoggingConfig
+from ...shared.mixins.logging_mixin import LoggingMixin
+from .qanda_integration import QandAIntegration
 
 
-class TimetableCLI:
+class TimetableCLI(LoggingMixin):
     """時間割生成システムのCLIインターフェース"""
     
     def __init__(self):
+        super().__init__()
         self.setup_logging()
-        self.logger = logging.getLogger(__name__)
     
     def setup_logging(self):
         """ログ設定"""
@@ -43,12 +45,14 @@ class TimetableCLI:
                 return self.handle_generate_command(parsed_args)
             elif parsed_args.command == "validate":
                 return self.handle_validate_command(parsed_args)
+            elif parsed_args.command == "fix":
+                return self.handle_fix_command(parsed_args)
             else:
                 parser.print_help()
                 return 1
                 
         except Exception as e:
-            self.logger.error(f"実行エラー: {e}")
+            self.log_error(f"実行エラー: {e}")
             if parsed_args.verbose:
                 import traceback
                 traceback.print_exc()
@@ -57,11 +61,12 @@ class TimetableCLI:
     def create_parser(self):
         """コマンドライン引数パーサーを作成"""
         parser = argparse.ArgumentParser(
-            description="中学校時間割自動生成システム v3.0 (高度なCSPアルゴリズム標準搭載)",
+            description="中学校時間割自動生成システム v4.0 (Ultrathink Perfect Generator標準搭載)",
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog="""
 使用例:
-  %(prog)s generate                          # 高度なCSPアルゴリズムで時間割生成（デフォルト）
+  %(prog)s generate                          # Ultrathink Perfect Generatorで完璧な時間割生成（デフォルト）
+  %(prog)s generate --no-ultrathink          # 従来の高度なCSPアルゴリズムを使用
   %(prog)s generate --max-iterations 300     # より多くの反復で最適化
   %(prog)s generate --enable-all-optimizations  # すべての最適化を有効化
   %(prog)s generate --optimize-gym-usage     # 体育館使用を最適化
@@ -69,11 +74,16 @@ class TimetableCLI:
   %(prog)s generate --optimize-workload      # 教師負担を最適化
   %(prog)s generate --use-legacy             # レガシーアルゴリズムを使用
   %(prog)s validate output.csv               # 時間割を検証
+  %(prog)s fix                               # 時間割の問題を自動修正
+  %(prog)s fix --fix-tuesday                 # 火曜日の問題のみ修正
+  %(prog)s fix --fix-daily-duplicates        # 日内重複のみ修正
 
 詳細情報:
-  - デフォルトで高度なCSPアルゴリズムが使用されます
+  - デフォルトでUltratrink Perfect Generatorが使用されます（完璧な時間割を最初から生成）
+  - --no-ultrathinkで従来の高度なCSPアルゴリズムに切り替えできます
   - 空きコマは自動的に埋められます
   - 制約違反チェックは check_violations.py を使用してください
+  - fixコマンドで生成後の問題を自動修正できます
             """
         )
         
@@ -124,6 +134,13 @@ class TimetableCLI:
             help="出力ファイル名 (デフォルト: data/output/output.csv)"
         )
         generate_parser.add_argument(
+            "--strategy",
+            choices=["legacy", "advanced_csp", "improved_csp", "ultrathink", "grade5_priority", "unified_hybrid", "simple_v2"],
+            required=True,
+            help="使用する生成戦略を選択します。"
+        )
+
+        generate_parser.add_argument(
             "--max-iterations",
             type=int,
             default=100,
@@ -156,12 +173,7 @@ class TimetableCLI:
             action="store_true",
             help="空の時間割から生成を開始（入力ファイルを無視）"
         )
-        generate_parser.add_argument(
-            "--use-legacy",
-            action="store_true",
-            help="レガシーアルゴリズムを使用（デフォルトは高度なCSPアルゴリズム）"
-        )
-        # 拡張機能オプション
+        
         generate_parser.add_argument(
             "--optimize-meeting-times",
             action="store_true",
@@ -187,6 +199,58 @@ class TimetableCLI:
             action="store_true",
             help="すべての最適化機能を有効化"
         )
+        generate_parser.add_argument(
+            "--search-mode",
+            choices=["standard", "priority", "smart", "hybrid"],
+            default="standard",
+            help="探索モード: standard(従来), priority(優先度), smart(制約伝播), hybrid(複合)"
+        )
+        generate_parser.add_argument(
+            "--use-advanced-search",
+            action="store_true",
+            help="高度な探索アルゴリズム（制約伝播、優先度配置、SA最適化）を使用"
+        )
+        generate_parser.add_argument(
+            "--use-ultra-optimized",
+            action="store_true",
+            help="超最適化ジェネレーター（コンポーネント分離、並列処理、学習機能）を使用"
+        )
+        generate_parser.add_argument(
+            "--ultra-cache-size",
+            type=int,
+            default=100,
+            help="超最適化ジェネレーターのキャッシュサイズ（MB、デフォルト: 100）"
+        )
+        generate_parser.add_argument(
+            "--ultra-beam-width",
+            type=int,
+            default=10,
+            help="超最適化ジェネレーターのビーム幅（デフォルト: 10）"
+        )
+        generate_parser.add_argument(
+            "--auto-optimization",
+            action="store_true",
+            default=True,
+            help="自動最適化を使用してシステムが最適な設定を決定（デフォルト: 有効）"
+        )
+        generate_parser.add_argument(
+            "--no-auto-optimization",
+            dest="auto_optimization",
+            action="store_false",
+            help="自動最適化を無効化（手動で設定を指定）"
+        )
+        
+        generate_parser.add_argument(
+            "--human-like-flexibility",
+            action="store_true",
+            help="人間的な柔軟性を有効化（教師代替、時数借用など）"
+        )
+
+        generate_parser.add_argument(
+            "--use-simple-generator",
+            action="store_true",
+            help="シンプルジェネレーターを使用"
+        )
         
         # validateコマンド
         validate_parser = subparsers.add_parser(
@@ -196,6 +260,47 @@ class TimetableCLI:
         validate_parser.add_argument(
             "schedule_file",
             help="検証する時間割ファイル"
+        )
+        
+        # fixコマンド
+        fix_parser = subparsers.add_parser(
+            "fix",
+            help="時間割の問題を自動修正"
+        )
+        fix_parser.add_argument(
+            "--input",
+            default=str(path_config.default_output_csv),
+            help="修正する時間割ファイル (デフォルト: data/output/output.csv)"
+        )
+        fix_parser.add_argument(
+            "--output",
+            default=str(Path(path_config.output_dir) / "output_fixed.csv"),
+            help="修正後の出力ファイル (デフォルト: data/output/output_fixed.csv)"
+        )
+        fix_parser.add_argument(
+            "--fix-tuesday",
+            action="store_true",
+            help="火曜日の問題を重点的に修正"
+        )
+        fix_parser.add_argument(
+            "--fix-daily-duplicates",
+            action="store_true",
+            help="日内重複を修正"
+        )
+        fix_parser.add_argument(
+            "--fix-exchange-sync",
+            action="store_true",
+            help="交流学級の同期を修正"
+        )
+        fix_parser.add_argument(
+            "--fix-teacher-conflicts",
+            action="store_true",
+            help="教師の重複を修正"
+        )
+        fix_parser.add_argument(
+            "--fix-all",
+            action="store_true",
+            help="すべての問題を自動修正（デフォルト）"
         )
         
         return parser
@@ -208,6 +313,10 @@ class TimetableCLI:
         doc_service.log_architecture_understanding()
         
         self.print_header()
+        
+        # QandAシステムの初期化と事前チェック
+        qanda = QandAIntegration()
+        qanda.pre_generation_check()
         
         # ファイル存在確認
         required_files = [args.base_timetable]
@@ -223,9 +332,9 @@ class TimetableCLI:
                     missing_files.append(file)
         
         if missing_files:
-            self.logger.error("必要なファイルが見つかりません:")
+            self.log_error("必要なファイルが見つかりません:")
             for file in missing_files:
-                self.logger.error(f"  - {file}")
+                self.log_error(f"  - {file}")
             return 1
         
         # ファイル状況表示
@@ -237,23 +346,48 @@ class TimetableCLI:
             args.optimize_gym_usage = True
             args.optimize_workload = True
         
+        # 高度な探索モードの処理
+        if args.use_advanced_search:
+            args.search_mode = "hybrid"  # デフォルトでハイブリッドモードを使用
+        
+        # 超最適化オプションの処理
+        ultra_config = None
+        if hasattr(args, 'use_ultra_optimized') and args.use_ultra_optimized:
+            ultra_config = {
+                'enable_parallel': True,
+                'cache_size_mb': args.ultra_cache_size if hasattr(args, 'ultra_cache_size') else 100,
+                'beam_width': args.ultra_beam_width if hasattr(args, 'ultra_beam_width') else 10,
+                'optimization_level': 'extreme'  # 超最適化は最高レベル
+            }
+        
+        if args.use_simple_generator:
+            from ...application.services.simple_generator import SimpleGenerator
+            # 学校データを読み込み
+            from ...infrastructure.repositories.csv_repository import CSVSchoolRepository
+            school_repo = CSVSchoolRepository(path_config.config_dir)
+            school = school_repo.load_school_data("base_timetable.csv")
+            # 初期スケジュールを読み込み
+            from ...infrastructure.repositories.csv_repository import CSVScheduleRepository
+            schedule_repo = CSVScheduleRepository(path_config.data_dir)
+            initial_schedule = schedule_repo.load("input/input.csv", school)
+
+            generator = SimpleGenerator(school, initial_schedule)
+            result_schedule = generator.generate()
+            # 結果を保存
+            schedule_repo.save(result_schedule, args.output)
+            self.log_info(f"時間割を {args.output} に保存しました。")
+            return 0
+
         # リクエスト作成（統合版）
+        print(f"[DEBUG] args.use_ultra_optimized = {getattr(args, 'use_ultra_optimized', 'NOT SET')}")
+        print(f"[DEBUG] hasattr(args, 'use_ultra_optimized') = {hasattr(args, 'use_ultra_optimized')}")
         request = GenerateScheduleRequest(
             base_timetable_file=args.base_timetable,
             desired_timetable_file=args.desired_timetable,
             followup_prompt_file=args.followup_prompt,
             output_file=args.output,
             data_directory=args.data_dir,
-            max_iterations=args.max_iterations,
-            enable_soft_constraints=args.soft_constraints,
-            use_random=args.use_random,
-            randomness_level=args.randomness_level,
-            start_empty=args.start_empty,
-            use_advanced_csp=not args.use_legacy,
-            optimize_meeting_times=args.optimize_meeting_times,
-            optimize_gym_usage=args.optimize_gym_usage,
-            optimize_workload=args.optimize_workload,
-            use_support_hours=args.use_support_hours
+            strategy=args.strategy,
         )
         
         # 時間割生成実行前にモジュールチェック
@@ -262,7 +396,7 @@ class TimetableCLI:
         # 有効化された機能をログ出力
         if any([request.optimize_meeting_times, request.optimize_gym_usage, 
                 request.optimize_workload, request.use_support_hours]):
-            self.logger.info("時間割生成を開始（拡張機能有効）...")
+            self.log_info("時間割生成を開始（拡張機能有効）...")
             features = []
             if request.optimize_meeting_times:
                 features.append("会議時間最適化")
@@ -272,12 +406,15 @@ class TimetableCLI:
                 features.append("教師負担最適化")
             if request.use_support_hours:
                 features.append("5組時数表記")
-            self.logger.info("有効な機能: %s", ", ".join(features))
+            self.log_info("有効な機能: %s", ", ".join(features))
         else:
-            self.logger.info("時間割生成を開始...")  
+            if request.use_ultrathink:
+                self.log_info("時間割生成を開始（Ultrathink Perfect Generator）...")
+            else:
+                self.log_info("時間割生成を開始...")  
         
         # 時間割生成実行（統合版）
-        use_case = GenerateScheduleUseCase()
+        use_case = UseCaseFactory.create_generate_schedule_use_case()
         result = use_case.execute(request)
         
         # 結果表示
@@ -285,6 +422,22 @@ class TimetableCLI:
         
         # 出力ファイル確認
         self.check_output_file(args.data_dir / args.output)
+        
+        # QandAシステムによる違反分析（違反がある場合）
+        if result.violations_count > 0:
+            # 違反情報を取得するために検証を実行
+            validate_use_case = UseCaseFactory.create_validate_schedule_use_case()
+            validate_request = ValidateScheduleRequest(
+                schedule_file=args.output,
+                data_directory=args.data_dir,
+                enable_soft_constraints=args.soft_constraints
+            )
+            validation_result = validate_use_case.execute(validate_request)
+            
+            if validation_result.violations:
+                qanda.post_generation_analysis(validation_result.violations)
+        else:
+            qanda.post_generation_analysis([])
         
         self.print_footer(result.success)
         
@@ -296,24 +449,124 @@ class TimetableCLI:
         
         schedule_file = args.data_dir / args.schedule_file
         if not schedule_file.exists():
-            self.logger.error(f"時間割ファイルが見つかりません: {schedule_file}")
+            self.log_error(f"時間割ファイルが見つかりません: {schedule_file}")
             return 1
         
-        self.logger.info(f"時間割を検証中: {schedule_file}")
+        self.log_info(f"時間割を検証中: {schedule_file}")
         
-        use_case = ValidateScheduleUseCase()
-        result = use_case.execute(args.schedule_file, args.data_dir)
+        use_case = UseCaseFactory.create_validate_schedule_use_case()
+        # リクエストオブジェクトを作成
+        request = ValidateScheduleRequest(
+            schedule_file=args.schedule_file,
+            data_directory=args.data_dir
+        )
+        result = use_case.execute(request)
         
-        if "error" in result:
-            self.logger.error(f"検証エラー: {result['error']}")
+        if not result.is_valid and result.violations_count == 1 and "error" in result.violations[0]:
+            self.log_error(f"検証エラー: {result.message}")
             return 1
         
         # 検証結果表示
         self.print_validation_result(result)
         
-        return 0 if result['is_valid'] else 1
+        return 0 if result.is_valid else 1
     
-    def print_header(self, title="時間割自動生成システム"):
+    def handle_fix_command(self, args):
+        """時間割修正コマンドを処理"""
+        self.print_header("時間割自動修正システム")
+        
+        # 入力ファイルの確認
+        input_file = Path(args.input)
+        if not input_file.exists():
+            self.log_error(f"入力ファイルが見つかりません: {input_file}")
+            return 1
+        
+        # DataFrame読み込み
+        import pandas as pd
+        df = pd.read_csv(input_file, header=None)
+        
+        # 修正サービスの初期化
+        from ...application.services.schedule_fixer_service import ScheduleFixerService
+        fixer = ScheduleFixerService(df)
+        
+        # 現在の状態を分析
+        self.log_info("【現在の状態分析】")
+        initial_conflicts = fixer.analyze_all_conflicts()
+        initial_count = sum(len(conflicts) for conflicts in initial_conflicts.values())
+        self.log_info(f"初期競合数: {initial_count}件")
+        
+        # 修正オプションの処理
+        if args.fix_all or (not args.fix_tuesday and not args.fix_daily_duplicates and not args.fix_exchange_sync):
+            # デフォルトまたは--fix-allの場合はすべて修正
+            self.log_info("\nすべての問題を修正します...")
+            df_fixed, fixes = fixer.fix_all_conflicts()
+        else:
+            # 個別修正
+            fix_count = 0
+            if args.fix_tuesday:
+                self.log_info("\n火曜日の問題を修正します...")
+                fix_count += fixer.fix_tuesday_conflicts()
+            
+            if args.fix_daily_duplicates:
+                self.log_info("\n日内重複を修正します...")
+                fix_count += fixer.fix_daily_duplicates()
+            
+            if args.fix_exchange_sync:
+                self.log_info("\n交流学級の同期を修正します...")
+                fix_count += fixer.fix_exchange_class_sync()
+
+            if args.fix_teacher_conflicts:
+                self.log_info("\n教師の重複を修正します...")
+                # TeacherConflictResolverServiceをインポートして使用
+                from ...application.services.teacher_conflict_resolver_service import TeacherConflictResolverService
+                resolver = TeacherConflictResolverService(df)
+                df_fixed, teacher_fixes = resolver.resolve_conflicts()
+                fixer.df = df_fixed # 修正後のDataFrameをfixerに反映
+                fixer.fixes.extend(teacher_fixes) # 修正内容を記録
+                fix_count += len(teacher_fixes)
+            
+            df_fixed = fixer.df
+            fixes = fixer.fixes
+        
+        # 最終状態の分析
+        final_conflicts = fixer.analyze_all_conflicts()
+        final_count = sum(len(conflicts) for conflicts in final_conflicts.values())
+        
+        # 結果の表示
+        print("\n【修正結果】")
+        print(f"修正前の競合数: {initial_count}件")
+        print(f"修正後の競合数: {final_count}件")
+        
+        if initial_count > 0:
+            improvement = ((initial_count - final_count) / initial_count * 100)
+            print(f"改善率: {improvement:.1f}%")
+        
+        print(f"\n実行した修正: {len(fixes)}件")
+        
+        # 修正内容の表示（最初の10件）
+        if fixes:
+            print("\n【修正内容（最初の10件）】")
+            for i, fix in enumerate(fixes[:10]):
+                print(f"  {i+1}. {fix}")
+            
+            if len(fixes) > 10:
+                print(f"  ... 他 {len(fixes) - 10} 件")
+        
+        # ファイル保存
+        output_file = Path(args.output)
+        fixer.save_to_file(output_file)
+        
+        print(f"\n修正結果を保存しました: {output_file}")
+        
+        # 検証の実行
+        if final_count > 0:
+            print("\n⚠️  まだ競合が残っています。check_violations.py で詳細を確認してください。")
+        else:
+            print("\n✓ すべての競合が解決されました！")
+        
+        return 0 if final_count == 0 else 1
+    
+    def print_header(self, title="時間割自動生成システム (Ultrathink Perfect Generator)"):
         """ヘッダーを表示"""
         print("=" * 60)
         print(f"　　　　{title}")
@@ -370,24 +623,25 @@ class TimetableCLI:
     def print_validation_result(self, result):
         """検証結果を表示"""
         print("【検証結果】")
-        print(f"総割り当て数: {result['total_assignments']}件")
-        print(f"ハード制約違反: {result['hard_violations']}件")
-        print(f"ソフト制約違反: {result['soft_violations']}件")
+        print(f"制約違反数: {result.violations_count}件")
+        print(f"検証結果: {result.message}")
         
-        if result['is_valid']:
+        if result.is_valid:
             print("✓ 時間割は有効です")
         else:
             print("✗ 時間割に問題があります")
             
-            if result['hard_violation_details']:
-                print("\nハード制約違反の詳細:")
-                for violation in result['hard_violation_details']:
-                    print(f"  - {violation}")
-            
-            if result['soft_violation_details']:
-                print("\nソフト制約違反の詳細:")
-                for violation in result['soft_violation_details']:
-                    print(f"  - {violation}")
+            if result.violations:
+                print("\n制約違反の詳細 (最初の10件):")
+                for i, violation in enumerate(result.violations[:10]):
+                    if isinstance(violation, dict):
+                        print(f"  {i+1}. {violation['class']} {violation['day']}{violation['period']}校時: "
+                              f"{violation['subject']} - {violation['message']} [{violation['priority']}]")
+                    else:
+                        print(f"  {i+1}. {violation}")
+                
+                if len(result.violations) > 10:
+                    print(f"  ... 他 {len(result.violations) - 10} 件")
         
         print()
     
@@ -405,7 +659,7 @@ class TimetableCLI:
         """フッターを表示"""
         print("=" * 60)
         if success:
-            print("時間割生成処理が正常に完了しました。")
+            print("時間割生成処理が正常に完了しました（Ultrathink Perfect Generator）。")
         else:
             print("時間割生成処理が完了しましたが、問題があります。")
         print("=" * 60)

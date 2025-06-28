@@ -14,7 +14,7 @@ from .basic_constraints import (
     TeacherAvailabilityConstraint,
     StandardHoursConstraint
 )
-from .teacher_conflict_constraint_refactored import TeacherConflictConstraintRefactored as TeacherConflictConstraint
+from .teacher_conflict_constraint import TeacherConflictConstraint
 from .exchange_class_sync_constraint import ExchangeClassSyncConstraint as ExchangeClassConstraint
 from .daily_duplicate_constraint import DailyDuplicateConstraint as DailySubjectDuplicateConstraint
 from .subject_validity_constraint import (
@@ -32,6 +32,7 @@ from .meeting_lock_constraint import MeetingLockConstraint
 from .tuesday_pe_constraint import TuesdayPEMultipleConstraint
 from .cell_forbidden_subject_constraint import CellForbiddenSubjectConstraint
 from .teacher_absence_constraint import TeacherAbsenceConstraint
+from .grade5_test_exclusion_constraint import Grade5TestExclusionConstraint
 
 __all__ = [
     # Base
@@ -64,4 +65,5 @@ __all__ = [
     'TuesdayPEMultipleConstraint',
     'CellForbiddenSubjectConstraint',
     'TeacherAbsenceConstraint',
+    'Grade5TestExclusionConstraint',
 ]

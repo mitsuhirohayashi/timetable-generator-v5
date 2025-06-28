@@ -1,0 +1,73 @@
+INFO:__main__:データ読み込み中...
+ERROR:src.domain.value_objects.subject_validator:有効教科読み込みエラー: 'NoneType' object has no attribute 'strip'
+WARNING:src.domain.value_objects.subject_validator:デフォルト教師マッピング読み込みエラー: 'デフォルト教師'
+INFO:src.infrastructure.repositories.csv_repository:標準時数データを読み込みました: 255件
+INFO:src.infrastructure.repositories.teacher_mapping_repository:教員マッピングを読み込みました: 20名の教員
+INFO:src.infrastructure.repositories.teacher_mapping_repository:恒久的休み情報: 0名の教員
+WARNING:src.infrastructure.repositories.csv_repository:教員マッピングなし: 2年1組 技家 - この教科は担当教員が設定されていないため、スキップします
+WARNING:src.infrastructure.repositories.csv_repository:教員マッピングなし: 2年2組 技家 - この教科は担当教員が設定されていないため、スキップします
+WARNING:src.infrastructure.repositories.csv_repository:教員マッピングなし: 2年3組 技家 - この教科は担当教員が設定されていないため、スキップします
+INFO:src.infrastructure.repositories.csv_repository:学校データを構築しました: School(classes=18, teachers=20)
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 1年1組 月曜3校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 1年2組 月曜3校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 1年3組 月曜3校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 1年6組 月曜3校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 1年7組 月曜3校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 2年1組 月曜2校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 2年2組 月曜2校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 2年3組 月曜2校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 2年6組 月曜2校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 2年7組 月曜2校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 3年1組 火曜3校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 3年2組 火曜3校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 3年3組 火曜3校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 3年6組 火曜3校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:テスト期間をロック: 3年7組 火曜3校時 = 技家
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 月曜1校時 1年5組 - 日生
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 月曜2校時 1年5組 - 理
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 月曜3校時 1年5組 - 国
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 火曜1校時 1年5組 - 自立
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 火曜2校時 1年5組 - 国
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 火曜3校時 1年5組 - 理
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 水曜1校時 1年5組 - 自立
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 水曜2校時 1年5組 - 数
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 水曜3校時 1年5組 - 国
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 月曜1校時 2年5組 - 日生
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 月曜2校時 2年5組 - 理
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 月曜3校時 2年5組 - 国
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 火曜1校時 2年5組 - 自立
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 火曜2校時 2年5組 - 国
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 火曜3校時 2年5組 - 理
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 水曜1校時 2年5組 - 自立
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 水曜2校時 2年5組 - 数
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 水曜3校時 2年5組 - 国
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 月曜1校時 3年5組 - 日生
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 月曜2校時 3年5組 - 理
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 月曜3校時 3年5組 - 国
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 火曜1校時 3年5組 - 自立
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 火曜2校時 3年5組 - 国
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 火曜3校時 3年5組 - 理
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 水曜1校時 3年5組 - 自立
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 水曜2校時 3年5組 - 数
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:[CSV読み込み] 5組テスト期間データ: 水曜3校時 3年5組 - 国
+INFO:src.infrastructure.repositories.schedule_io.csv_reader:スケジュールを読み込みました: data/output/output_exchange_sync_fixed.csv
+INFO:__main__:=== 修正可能な教師重複の修正開始 ===
+INFO:__main__:検出された修正可能な違反: 16件
+INFO:__main__:
+月曜5校時: 智田先生の重複を修正
+INFO:__main__:  重複クラス: ['2年1組(理)', '2年7組(自立)']
+INFO:__main__:  空きスロットがないため、スワップを試みます
+INFO:__main__:    スワップ: 月曜5校時の自立 ⇔ 火曜4校時の技
+Traceback (most recent call last):
+  File "/Users/hayashimitsuhiro/Desktop/timetable_v5/fix_teacher_conflicts_improved.py", line 322, in <module>
+    main()
+    ~~~~^^
+  File "/Users/hayashimitsuhiro/Desktop/timetable_v5/fix_teacher_conflicts_improved.py", line 309, in main
+    fixed = fix_teacher_conflicts_smart(schedule, school)
+  File "/Users/hayashimitsuhiro/Desktop/timetable_v5/fix_teacher_conflicts_improved.py", line 194, in fix_teacher_conflicts_smart
+    if try_swap(schedule, school, time_slot, class_name, subject_name, teacher):
+       ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/hayashimitsuhiro/Desktop/timetable_v5/fix_teacher_conflicts_improved.py", line 249, in try_swap
+    teacher=school.get_subject_teachers(Subject(subject_name))[0]
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'set' object is not subscriptable

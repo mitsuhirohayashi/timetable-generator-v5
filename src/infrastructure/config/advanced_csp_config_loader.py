@@ -1,11 +1,11 @@
 """高度なCSPアルゴリズム用の設定ローダー"""
 import json
-import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 
 from src.domain.value_objects.time_slot import ClassReference
+from ...shared.mixins.logging_mixin import LoggingMixin
 
 
 @dataclass
@@ -30,13 +30,24 @@ class AdvancedCSPConfig:
     max_iterations: int
     swap_attempts: int
     temperature: float
+    # CSP特有のパラメータ
+    backtrack_limit: int = 10000
+    local_search_iterations: int = 500
+    tabu_tenure: int = 10
+    timeout_seconds: Optional[int] = None
+    enable_constraint_propagation: bool = True
+    enable_arc_consistency: bool = True
+    search_strategy: str = "most_constrained_first"
+    value_ordering_strategy: str = "least_constraining_value"
+    priority_weights: Dict[str, float] = None
+    optimization_phases: List[str] = None
 
 
-class AdvancedCSPConfigLoader:
+class AdvancedCSPConfigLoader(LoggingMixin):
     """高度なCSP設定ローダー"""
     
     def __init__(self, config_path: Optional[Path] = None):
-        self.logger = logging.getLogger(__name__)
+        super().__init__()
         self.config_path = config_path or Path("data/config/advanced_csp_config.json")
         
     def load(self) -> AdvancedCSPConfig:
@@ -79,7 +90,18 @@ class AdvancedCSPConfigLoader:
                 skill_subjects_preferred_periods=data['subject_preferences']['skill_subjects_preferred_periods'],
                 max_iterations=data['optimization']['max_iterations'],
                 swap_attempts=data['optimization']['swap_attempts'],
-                temperature=data['optimization']['temperature']
+                temperature=data['optimization']['temperature'],
+                # CSP特有のパラメータ（JSONに存在しない場合はデフォルト値を使用）
+                backtrack_limit=data.get('csp', {}).get('backtrack_limit', 10000),
+                local_search_iterations=data.get('csp', {}).get('local_search_iterations', 500),
+                tabu_tenure=data.get('csp', {}).get('tabu_tenure', 10),
+                timeout_seconds=data.get('csp', {}).get('timeout_seconds', None),
+                enable_constraint_propagation=data.get('csp', {}).get('enable_constraint_propagation', True),
+                enable_arc_consistency=data.get('csp', {}).get('enable_arc_consistency', True),
+                search_strategy=data.get('csp', {}).get('search_strategy', "most_constrained_first"),
+                value_ordering_strategy=data.get('csp', {}).get('value_ordering_strategy', "least_constraining_value"),
+                priority_weights=data.get('csp', {}).get('priority_weights', {"CRITICAL": 1000.0, "HIGH": 100.0, "MEDIUM": 10.0, "LOW": 1.0}),
+                optimization_phases=data.get('csp', {}).get('optimization_phases', ["jiritsu", "grade5", "core_subjects", "skill_subjects", "fill_remaining"])
             )
             
         except FileNotFoundError:
@@ -121,5 +143,16 @@ class AdvancedCSPConfigLoader:
             skill_subjects_preferred_periods=[4, 5, 6],
             max_iterations=100,
             swap_attempts=21,
-            temperature=0.1
+            temperature=0.1,
+            # CSP特有のパラメータのデフォルト値
+            backtrack_limit=10000,
+            local_search_iterations=500,
+            tabu_tenure=10,
+            timeout_seconds=None,
+            enable_constraint_propagation=True,
+            enable_arc_consistency=True,
+            search_strategy="most_constrained_first",
+            value_ordering_strategy="least_constraining_value",
+            priority_weights={"CRITICAL": 1000.0, "HIGH": 100.0, "MEDIUM": 10.0, "LOW": 1.0},
+            optimization_phases=["jiritsu", "grade5", "core_subjects", "skill_subjects", "fill_remaining"]
         )

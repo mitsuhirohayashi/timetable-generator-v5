@@ -4,9 +4,10 @@ from collections import defaultdict
 
 from ..value_objects.time_slot import ClassReference, Subject, Teacher
 from ..value_objects.assignment import StandardHours
+from ...shared.mixins.validation_mixin import ValidationMixin, ValidationError
 
 
-class School:
+class School(ValidationMixin):
     """学校全体の情報を管理するエンティティ"""
     
     def __init__(self):
@@ -72,7 +73,7 @@ class School:
     def assign_teacher_to_class(self, teacher: Teacher, subject: Subject, class_ref: ClassReference) -> None:
         """教員を特定のクラス・教科に割り当て"""
         if not self.can_teacher_teach_subject(teacher, subject):
-            raise ValueError(f"{teacher} cannot teach {subject}")
+            raise ValidationError(f"{teacher} cannot teach {subject}")
         
         self._teacher_assignments[(subject, class_ref)] = teacher
     
@@ -97,6 +98,10 @@ class School:
             sougou_subject = Subject("総")
             return self._standard_hours.get((class_ref, sougou_subject), 0.0)
         return self._standard_hours.get((class_ref, subject), 0.0)
+    
+    def get_all_subjects(self) -> Set[Subject]:
+        """全ての科目を取得"""
+        return set(self._subject_teachers.keys())
     
     def get_all_standard_hours(self, class_ref: ClassReference) -> Dict[Subject, float]:
         """指定されたクラスの全ての標準時数を取得"""

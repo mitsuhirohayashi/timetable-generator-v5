@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .time_slot import ClassReference, Subject, Teacher
+from ...shared.mixins.validation_mixin import ValidationError
 
 
 @dataclass(frozen=True)
@@ -68,7 +69,7 @@ class StandardHours:
     
     def __post_init__(self):
         if self.hours_per_week < 0:
-            raise ValueError("Hours per week cannot be negative")
+            raise ValidationError("Hours per week cannot be negative")
     
     def __str__(self) -> str:
         return f"{self.class_ref} {self.subject}: {self.hours_per_week}時間/週"

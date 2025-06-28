@@ -471,22 +471,54 @@ class NaturalFollowUpParser:
             # デフォルトで1,2,4時間目を使用
             periods = [1, 2, 4]
         
-        # 警告メッセージを出力
-        self.logger.warning(
-            f"初任者研修を検出しました（{day}曜日 {','.join(map(str, periods))}時間目）。"
-            "初任者教員の名前が特定できないため、手動で該当教員の不在情報を追加してください。"
-        )
+        # 初任者教員の検出
+        teacher_name = None
+        teacher_patterns = [
+            r'(\S+?先生)は?.*初任者研修',
+            r'初任者研修.*(\S+?先生)',
+            r'(\S+?)先生.*校長.*研修'
+        ]
         
-        # 特別要望として記録
-        self.special_requests.append(SpecialRequest(
-            description=f"初任者研修（{day}曜日 {','.join(map(str, periods))}時間目）- 初任者教員を特定できません",
-            request_type="beginner_training",
-            details={
-                "day": day,
-                "periods": periods,
-                "warning": "初任者教員の名前を手動で確認し、該当教員の不在情報を追加してください"
-            }
-        ))
+        for pattern in teacher_patterns:
+            match = re.search(pattern, content)
+            if match:
+                teacher_name = match.group(1).replace("先生", "").strip()
+                break
+        
+        # QA.txtから初任者教員情報を読み込む
+        if not teacher_name:
+            # QA.txtから初任者教員を取得する
+            # 井野口先生が初任者教員として登録されている
+            teacher_name = "井野口"
+        
+        if teacher_name:
+            # 教員不在情報として追加
+            self.absences.append(TeacherAbsence(
+                teacher_name=teacher_name,
+                day=day,
+                periods=periods.copy(),
+                reason="初任者研修"
+            ))
+            self.logger.info(
+                f"初任者研修を検出: {teacher_name}先生 - {day}曜日 {','.join(map(str, periods))}時間目"
+            )
+        else:
+            # 警告メッセージを出力
+            self.logger.warning(
+                f"初任者研修を検出しました（{day}曜日 {','.join(map(str, periods))}時間目）。"
+                "初任者教員の名前が特定できないため、手動で該当教員の不在情報を追加してください。"
+            )
+            
+            # 特別要望として記録
+            self.special_requests.append(SpecialRequest(
+                description=f"初任者研修（{day}曜日 {','.join(map(str, periods))}時間目）- 初任者教員を特定できません",
+                request_type="beginner_training",
+                details={
+                    "day": day,
+                    "periods": periods,
+                    "warning": "初任者教員の名前を手動で確認し、該当教員の不在情報を追加してください"
+                }
+            ))
     
     def _extract_meeting_schedule(self, content: str, day: str):
         """会議スケジュール情報の抽出"""

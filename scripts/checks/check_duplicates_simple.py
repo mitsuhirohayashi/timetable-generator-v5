@@ -1,94 +1,62 @@
 #!/usr/bin/env python3
-"""CSVファイルから直接日内重複をチェックする簡易スクリプト"""
-import csv
+"""教師重複の簡易チェック"""
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent))
+
 from collections import defaultdict
+from src.infrastructure.repositories.csv_repository import CSVScheduleRepository, CSVSchoolRepository
+from src.infrastructure.config.path_config import path_config
+from src.domain.value_objects.time_slot import TimeSlot
 
-def check_daily_duplicates_in_csv(csv_path):
-    """CSVファイルから日内重複をチェック"""
-    protected_subjects = {'YT', '道', '学', '欠', '道徳', '学活', '学総', '総合', '行', ''}
-    
-    # CSVを読み込み
-    with open(csv_path, 'r', encoding='utf-8') as f:
-        reader = csv.reader(f)
-        headers = next(reader)  # ヘッダー行（曜日）
-        time_headers = next(reader)  # 時限行
+# リポジトリを直接作成
+school_repo = CSVSchoolRepository(path_config.data_dir)
+school = school_repo.load_school_data("config/base_timetable.csv")
+schedule_repo = CSVScheduleRepository(path_config.data_dir)
+
+# output.csvを読み込み
+schedule = schedule_repo.load("data/output/output.csv", school)
+
+# テスト期間
+test_periods = {
+    ("月", 1), ("月", 2), ("月", 3),
+    ("火", 1), ("火", 2), ("火", 3),
+    ("水", 1), ("水", 2)
+}
+
+print("=== 教師重複（テスト期間除く） ===")
+
+duplicates = []
+
+# 各時間帯の教師配置を収集
+for day in ["月", "火", "水", "木", "金"]:
+    for period in range(1, 7):
+        time_slot = TimeSlot(day, period)
         
-        # データを読み込み
-        duplicates = []
+        # テスト期間はスキップ
+        if (day, period) in test_periods:
+            continue
         
-        for row in reader:
-            if not row[0] or row[0].strip() == "":  # 空行スキップ
-                continue
+        # この時間の教師配置
+        teacher_assignments = defaultdict(list)
+        
+        for class_ref in school.get_all_classes():
+            assignment = schedule.get_assignment(time_slot, class_ref)
+            if assignment and assignment.teacher:
+                teacher_assignments[assignment.teacher.name].append((str(class_ref), assignment.subject.name))
+        
+        # 重複をチェック
+        for teacher_name, classes in teacher_assignments.items():
+            if len(classes) > 1:
+                # 5組の合同授業は除外
+                grade5_count = sum(1 for c, _ in classes if "5組" in c)
+                if grade5_count == len(classes) and grade5_count > 0:
+                    continue
                 
-            class_name = row[0]
-            
-            # 各曜日ごとに教科をチェック
-            subjects_by_day = {
-                '月': defaultdict(list),
-                '火': defaultdict(list),
-                '水': defaultdict(list),
-                '木': defaultdict(list),
-                '金': defaultdict(list)
-            }
-            
-            # 各セルを処理
-            for i, subject in enumerate(row[1:], 1):
-                if i > 30:  # 最大30コマ（5日×6時限）
-                    break
-                    
-                day_index = (i - 1) // 6
-                period = ((i - 1) % 6) + 1
-                
-                days = ['月', '火', '水', '木', '金']
-                if day_index < len(days):
-                    day = days[day_index]
-                    
-                    # 保護教科を除外
-                    if subject and subject not in protected_subjects:
-                        subjects_by_day[day][subject].append(period)
-            
-            # 重複をチェック
-            for day, subjects in subjects_by_day.items():
-                for subject, periods in subjects.items():
-                    if len(periods) > 1:
-                        duplicates.append({
-                            'class': class_name,
-                            'day': day,
-                            'subject': subject,
-                            'periods': periods
-                        })
-    
-    return duplicates
+                duplicates.append(f"{day}{period}限: {teacher_name}先生 - " + ", ".join([f"{c}({s})" for c, s in classes]))
 
+# 重複を表示
+for dup in duplicates:
+    print(dup)
 
-def main():
-    """メイン処理"""
-    print("=== CSVファイルの日内重複チェック ===\n")
-    
-    # output.csvをチェック
-    csv_path = "/Users/hayashimitsuhiro/Desktop/timetable_v5/data/output/output.csv"
-    duplicates = check_daily_duplicates_in_csv(csv_path)
-    
-    if duplicates:
-        print(f"{len(duplicates)} 件の日内重複が見つかりました：")
-        for dup in duplicates:
-            periods_str = ", ".join([f"{p}限" for p in dup['periods']])
-            print(f"  - {dup['class']}の{dup['day']}曜日: {dup['subject']}が{periods_str}に重複")
-    else:
-        print("日内重複はありません")
-    
-    # 特定のクラスの詳細を表示
-    print("\n=== 特定クラスの詳細 ===")
-    with open(csv_path, 'r', encoding='utf-8') as f:
-        reader = csv.reader(f)
-        headers = next(reader)
-        time_headers = next(reader)
-        
-        for row in reader:
-            if row[0] == '1年7組':
-                print(f"\n{row[0]}:")
-                print(f"  月曜日: {row[1:7]}")
-
-
-if __name__ == "__main__":
-    main()
+print(f"\n合計 {len(duplicates)} 件の教師重複（テスト期間除く）")

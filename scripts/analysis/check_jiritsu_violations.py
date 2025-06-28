@@ -1,88 +1,73 @@
 import csv
 
-# Read the timetable
-with open('data/output/output.csv', 'r', encoding='utf-8-sig') as f:
-    reader = csv.reader(f)
-    rows = list(reader)
+# 交流学級と親学級の対応関係
+exchange_pairs = {
+    '1年6組': '1年1組',
+    '1年7組': '1年2組',
+    '2年6組': '2年3組',
+    '2年7組': '2年2組',
+    '3年6組': '3年3組',
+    '3年7組': '3年2組'
+}
 
-# Read class definitions to get parent-child mappings
-jiritsu_rules = {}
-with open('data/config/class_definitions.csv', 'r', encoding='utf-8-sig') as f:
+# CSVファイルを読み込む
+with open('data/output/output.csv', 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
-    next(reader)  # Skip header
-    for row in reader:
-        if len(row) >= 4 and row[2] == '交流学級':
-            class_name = f"{row[0]}年{row[1]}組"
-            # Extract parent class from 備考
-            if '親学級は' in row[3]:
-                parent_class = row[3].replace('親学級は', '').strip()
-                jiritsu_rules[class_name] = parent_class
+    data = list(reader)
 
-# Check for jiritsu violations
-violations = []
+# クラス名と行番号のマッピングを作成
+class_row_map = {}
+for i, row in enumerate(data):
+    if row and row[0]:
+        class_name = row[0]
+        if class_name != '基本時間割' and class_name != '':
+            class_row_map[class_name] = i
+
+# 曜日と時限のマッピング
 days = ['月', '火', '水', '木', '金']
 periods = [1, 2, 3, 4, 5, 6]
 
-for i, row in enumerate(rows[2:], start=2):  # Skip headers
-    class_name = row[0]
-    if class_name in jiritsu_rules:
-        parent_class = jiritsu_rules[class_name]
-        # Find parent class row
-        parent_row = None
-        parent_row_idx = None
-        for j, r in enumerate(rows[2:], start=2):
-            if r[0] == parent_class:
-                parent_row = r
-                parent_row_idx = j
-                break
+# 違反をチェック
+violations = []
+jiritsu_count = 0
+
+for exchange_class, parent_class in exchange_pairs.items():
+    if exchange_class in class_row_map and parent_class in class_row_map:
+        exchange_row = class_row_map[exchange_class]
+        parent_row = class_row_map[parent_class]
         
-        if parent_row:
-            # Check each time slot
-            for col in range(1, 31):  # 30 time slots
-                if col < len(row) and col < len(parent_row):
-                    jiritsu_subject = row[col].strip()
-                    parent_subject = parent_row[col].strip()
-                    
-                    # Check if jiritsu has 自立 when parent doesn't
-                    if jiritsu_subject == '自立' and parent_subject != '自立' and parent_subject != '' and parent_subject != '欠' and parent_subject != 'YT':
-                        day_idx = (col - 1) // 6
-                        period = ((col - 1) % 6) + 1
-                        day = days[day_idx] if day_idx < len(days) else '?'
-                        violations.append({
-                            'jiritsu_class': class_name,
-                            'parent_class': parent_class,
-                            'day': day,
-                            'period': period,
-                            'jiritsu_subject': jiritsu_subject,
-                            'parent_subject': parent_subject,
-                            'col': col
-                        })
+        # 各時限をチェック
+        for col_idx in range(1, 31):  # 1-30列（月1から金6まで）
+            exchange_subject = data[exchange_row][col_idx]
+            
+            if exchange_subject == '自立':
+                jiritsu_count += 1
+                parent_subject = data[parent_row][col_idx]
+                
+                # 曜日と時限を計算
+                day_idx = (col_idx - 1) // 6
+                period_idx = (col_idx - 1) % 6
+                day = days[day_idx]
+                period = periods[period_idx]
+                
+                # 親学級が数学・英語以外の場合は違反
+                if parent_subject not in ['数', '英']:
+                    violations.append({
+                        'exchange_class': exchange_class,
+                        'parent_class': parent_class,
+                        'day': day,
+                        'period': period,
+                        'parent_subject': parent_subject
+                    })
+                    print(f'違反: {exchange_class}が自立活動の{day}曜{period}限、{parent_class}は「{parent_subject}」（数学・英語以外）')
+                else:
+                    print(f'OK: {exchange_class}が自立活動の{day}曜{period}限、{parent_class}は「{parent_subject}」')
 
-# Print violations
-print(f'Found {len(violations)} jiritsu violations:')
-for v in violations:
-    print(f"  {v['jiritsu_class']} {v['day']}{v['period']}: 自立 (parent {v['parent_class']} has {v['parent_subject']})")
+print(f'\n=== 集計結果 ===')
+print(f'自立活動の総数: {jiritsu_count}')
+print(f'違反数: {len(violations)}')
 
-# For each violation, show what other subjects the parent class has
-print("\nDetailed analysis of violations:")
-for v in violations:
-    print(f"\n{v['jiritsu_class']} {v['day']}{v['period']} - parent {v['parent_class']} has {v['parent_subject']}")
-    
-    # Find parent class row again
-    parent_row = None
-    for r in rows[2:]:
-        if r[0] == v['parent_class']:
-            parent_row = r
-            break
-    
-    if parent_row:
-        print("  Parent class schedule for potential swaps:")
-        for d_idx, d in enumerate(days):
-            print(f"    {d}: ", end='')
-            for p in range(1, 7):
-                col_idx = d_idx * 6 + p
-                if col_idx < len(parent_row):
-                    subject = parent_row[col_idx].strip()
-                    if subject and subject != '欠' and subject != 'YT':
-                        print(f"{p}={subject} ", end='')
-            print()
+if violations:
+    print('\n=== 違反詳細 ===')
+    for v in violations:
+        print(f'{v["exchange_class"]} ({v["day"]}{v["period"]}限) - 親学級{v["parent_class"]}が「{v["parent_subject"]}」')

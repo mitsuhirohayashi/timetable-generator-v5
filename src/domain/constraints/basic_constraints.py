@@ -7,6 +7,7 @@ from ..entities.schedule import Schedule
 from ..entities.school import School
 from ..value_objects.time_slot import TimeSlot, Teacher
 from ..value_objects.assignment import ConstraintViolation
+from ..constants import WEEKDAYS, PERIODS, FIXED_SUBJECTS
 
 
 class TeacherConflictConstraint(HardConstraint):
@@ -70,8 +71,8 @@ class TeacherConflictConstraint(HardConstraint):
         violations = []
         
         # 各時間枠で教員の重複をチェック
-        for day in ["月", "火", "水", "木", "金"]:
-            for period in range(1, 7):
+        for day in WEEKDAYS:
+            for period in PERIODS:
                 time_slot = TimeSlot(day, period)
                 assignments = schedule.get_assignments_by_time_slot(time_slot)
                 
@@ -175,8 +176,8 @@ class TeacherAvailabilityConstraint(HardConstraint):
     def validate(self, schedule: Schedule, school: School) -> ConstraintResult:
         violations = []
         
-        for day in ["月", "火", "水", "木", "金"]:
-            for period in range(1, 7):
+        for day in WEEKDAYS:
+            for period in PERIODS:
                 time_slot = TimeSlot(day, period)
                 assignments = schedule.get_assignments_by_time_slot(time_slot)
                 unavailable_teachers = school.get_unavailable_teachers(day, period)
@@ -211,8 +212,8 @@ class ExchangeClassConstraint(HardConstraint):
     def validate(self, schedule: Schedule, school: School) -> ConstraintResult:
         violations = []
         
-        for day in ["月", "火", "水", "木", "金"]:
-            for period in range(1, 7):
+        for day in WEEKDAYS:
+            for period in PERIODS:
                 time_slot = TimeSlot(day, period)
                 assignments = schedule.get_assignments_by_time_slot(time_slot)
                 
@@ -261,7 +262,7 @@ class DailySubjectDuplicateConstraint(HardConstraint):
         )
         self.max_daily_occurrences = max_daily_occurrences
         # 保護された教科（これらは重複可能）
-        self.protected_subjects = {"道徳", "道", "学活", "学", "学総", "YT", "欠", "総合", "総", "行"}
+        self.protected_subjects = FIXED_SUBJECTS
     
     def check(self, schedule: Schedule, school: School, time_slot: TimeSlot, 
               assignment: 'Assignment') -> bool:

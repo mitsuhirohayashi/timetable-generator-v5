@@ -1,0 +1,17 @@
+{
+  "max_iterations": 500,
+  "constraint_weights": {
+    "teacher_conflict": 100,
+    "gym_usage": 80,
+    "daily_duplicate": 70,
+    "exchange_sync": 60,
+    "grade5_sync": 60,
+    "standard_hours": 30
+  },
+  "optimization_params": {
+    "enable_smart_swap": true,
+    "enable_lookahead": true,
+    "enable_backtrack": true,
+    "parallel_search": true
+  }
+}

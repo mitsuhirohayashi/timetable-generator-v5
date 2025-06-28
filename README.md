@@ -2,13 +2,20 @@
 
 日本の中学校向けの時間割自動生成システムです。高度な制約充足問題（CSP）アプローチを使用して、複雑な制約条件を満たす最適な時間割を生成します。
 
-## バージョン 3.0の新機能
+## 🆕 最新アップデート（2025年6月19日）
+
+### 大規模リファクタリング完了
+- **コード整理**: 3,000行以上の重複コードを削減
+- **アーキテクチャ改善**: 制約システムとサービス層を統合
+- **エラーハンドリング**: カスタム例外と詳細ロギングを追加
+- **パフォーマンス計測**: プロファイラー機能を追加
+
+## バージョン 3.0の主要機能
 
 - **高度なCSPアルゴリズムがデフォルト**: バックトラッキングと局所探索による最適化
 - **1ステップで完全な時間割を生成**: `python3 main.py generate`コマンドだけで空きコマのない時間割を作成
-- **整理されたディレクトリ構造**: スクリプトファイルを用途別に分類
-- **パフォーマンスの向上**: 不要なファイルを削除し、コードベースを最適化
-- **統合ロギングシステム**: 一元化されたログ設定で出力を制御
+- **自己学習機能**: QandAシステムにより、実行するたびに賞くなる
+- **クリーンアーキテクチャ**: 保守性と拡張性に優れた設計
 
 ## ディレクトリ構造
 
@@ -70,6 +77,7 @@ pip install -r requirements.txt
 # 高度なCSPアルゴリズムで完全な時間割を生成（デフォルト）
 python3 main.py generate
 
+
 # より多くの反復で最適化
 python3 main.py generate --max-iterations 200
 
@@ -93,6 +101,30 @@ python3 main.py generate \
 
 ```bash
 python3 check_violations.py
+```
+
+### 時間割の修正
+
+```bash
+# 全ての問題を自動修正
+python3 main.py fix
+
+# 特定の問題のみ修正
+python3 main.py fix --fix-tuesday           # 火曜日の問題のみ
+python3 main.py fix --fix-daily-duplicates  # 日内重複のみ
+python3 main.py fix --fix-exchange-sync     # 交流学級同期のみ
+```
+
+### 最適化オプション
+
+```bash
+# 全ての最適化を有効化
+python3 main.py generate --enable-all-optimizations
+
+# 特定の最適化を有効化
+python3 main.py generate --optimize-meeting-times  # 会議時間最適化
+python3 main.py generate --optimize-gym-usage      # 体育館使用最適化
+python3 main.py generate --optimize-workload       # 教師負担最適化
 ```
 
 ### その他のスクリプト

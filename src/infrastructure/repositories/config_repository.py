@@ -50,7 +50,9 @@ class ConfigRepository:
             with open(file_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    valid_subjects.add(row['教科略号'].strip())
+                    subject_code = row.get('教科略号')
+                    if subject_code and subject_code.strip():
+                        valid_subjects.add(subject_code.strip())
                     
             self.logger.info(f"有効教科を読み込みました: {len(valid_subjects)}件")
             return valid_subjects

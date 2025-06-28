@@ -1,0 +1,107 @@
+{
+  "exclusion_rules": {
+    "test_period_patterns": {
+      "description": "テスト期間中の教師巡回監督は正常な運用として除外",
+      "rules": [
+        {
+          "name": "テスト期間の同一学年・同一科目の教師重複",
+          "condition": {
+            "period_type": "test",
+            "same_grade": true,
+            "same_subject": true
+          },
+          "exclude_from": ["teacher_conflict"],
+          "reason": "テスト期間中は1名の教科担当者がその教科を巡回監督するため"
+        },
+        {
+          "name": "テスト期間の全ての教師重複",
+          "condition": {
+            "period_type": "test",
+            "any_teacher_conflict": true
+          },
+          "exclude_from": ["teacher_conflict"],
+          "reason": "テスト期間中は教師の重複を制約違反としない"
+        }
+      ]
+    },
+    "grade5_joint_classes": {
+      "description": "5組（1-5、2-5、3-5）の合同授業は正常な運用として除外",
+      "rules": [
+        {
+          "name": "5組3クラス合同授業の教師重複",
+          "condition": {
+            "classes": ["1年5組", "2年5組", "3年5組"],
+            "same_teacher": true,
+            "same_subject": true,
+            "same_time": true
+          },
+          "exclude_from": ["teacher_conflict"],
+          "reason": "5組は全教科で3クラス合同授業を実施するため"
+        }
+      ]
+    },
+    "exchange_class_sync": {
+      "description": "交流学級と親学級の同期は正常な運用として除外",
+      "rules": [
+        {
+          "name": "親学級と交流学級の体育同時実施",
+          "condition": {
+            "subject": "保",
+            "parent_exchange_pair": true
+          },
+          "exclude_from": ["gym_usage"],
+          "reason": "交流学級は親学級と一緒に体育を行うため"
+        },
+        {
+          "name": "財津先生・智田先生の自立活動時間重複",
+          "condition": {
+            "subject": "自立",
+            "teacher": ["財津", "智田"],
+            "same_teacher_different_classes": true
+          },
+          "exclude_from": ["teacher_conflict"],
+          "allow_if": "他にずらすことが困難な場合",
+          "reason": "同じ教師が複数の交流学級を担当するが、時間割の制約上やむを得ない場合は許容"
+        }
+      ],
+      "parent_exchange_mapping": {
+        "1年6組": "1年1組",
+        "1年7組": "1年2組",
+        "2年6組": "2年3組",
+        "2年7組": "2年2組",
+        "3年6組": "3年3組",
+        "3年7組": "3年2組"
+      }
+    },
+    "empty_slot_notation": {
+      "description": "空きコマの特殊表記は違反としない",
+      "rules": [
+        {
+          "name": "保0などの空きコマ表記",
+          "condition": {
+            "teacher": "欠課先生",
+            "subject_contains": "0"
+          },
+          "exclude_from": ["all"],
+          "reason": "空きコマを示す特殊表記のため"
+        },
+        {
+          "name": "仮想教師の重複",
+          "condition": {
+            "teacher": ["欠課先生", "未定先生", "TBA"]
+          },
+          "exclude_from": ["teacher_conflict"],
+          "reason": "実在しない仮想教師のため"
+        }
+      ]
+    },
+    "test_periods": {
+      "description": "Follow-up.csvから読み取ったテスト期間",
+      "periods": [
+        {"day": "月", "periods": [1, 2, 3]},
+        {"day": "火", "periods": [1, 2, 3]},
+        {"day": "水", "periods": [1, 2]}
+      ]
+    }
+  }
+}

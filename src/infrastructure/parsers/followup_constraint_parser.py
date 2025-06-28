@@ -1,7 +1,6 @@
 """Follow-up.csvから週次の制約条件を読み込むパーサー"""
 import csv
 import re
-import logging
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 
@@ -9,14 +8,15 @@ from ...domain.constraints.base import Constraint, ConstraintType, ConstraintPri
 from ...domain.constraints.teacher_absence_constraint import TeacherAbsenceConstraint
 from ...domain.constraints.meeting_lock_constraint import MeetingLockConstraint
 from .enhanced_followup_parser import EnhancedFollowUpParser
+from ...shared.mixins.logging_mixin import LoggingMixin
 
 
-class FollowupConstraintParser:
+class FollowupConstraintParser(LoggingMixin):
     """Follow-up.csvから週次の制約条件を読み込むパーサー"""
     
     def __init__(self, file_path: Path):
+        super().__init__()
         self.file_path = file_path
-        self.logger = logging.getLogger(__name__)
         
         # 曜日のマッピング
         self.day_map = {
@@ -110,7 +110,31 @@ class FollowupConstraintParser:
         
         # 一つのTeacherAbsenceConstraintオブジェクトを作成
         if teacher_absences:
-            return [TeacherAbsenceConstraint(teacher_absences)]
+            # TeacherAbsenceLoaderを更新
+            from ..repositories.teacher_absence_loader import TeacherAbsenceLoader
+            from ..di_container import get_container, ITeacherAbsenceRepository
+            
+            # 不在データをローダーに渡すためのデータ構造を作成
+            absence_objects = []
+            for absence in teacher_absences:
+                # 簡易的なオブジェクトを作成
+                class AbsenceData:
+                    def __init__(self, data):
+                        self.teacher_name = data['teacher']
+                        self.day = data['day']
+                        self.periods = [data['period']]  # リスト形式に変換
+                        self.reason = '不在'
+                
+                absence_objects.append(AbsenceData(absence))
+            
+            # TeacherAbsenceLoaderインスタンスを取得して更新
+            absence_repo = get_container().resolve(ITeacherAbsenceRepository)
+            if hasattr(absence_repo, '_loader') and hasattr(absence_repo._loader, 'update_absences_from_parsed_data'):
+                absence_repo._loader.update_absences_from_parsed_data(absence_objects)
+                self.logger.info(f"教師不在情報を{len(absence_objects)}件ロードしました")
+            
+            # TeacherAbsenceConstraintは引数なしで呼び出す（DIコンテナから自動的にリポジトリを取得）
+            return [TeacherAbsenceConstraint()]
         else:
             return []
     

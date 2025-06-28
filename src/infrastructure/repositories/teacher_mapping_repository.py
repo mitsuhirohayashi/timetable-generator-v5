@@ -1,20 +1,21 @@
 """教員マッピング情報を読み込むリポジトリ"""
 import csv
-import logging
 import re
 from pathlib import Path
 from typing import Dict, List, Set, Tuple, Optional
 from collections import defaultdict
 
 from ...domain.value_objects.time_slot import Teacher, Subject, ClassReference
+from ...shared.mixins.logging_mixin import LoggingMixin
+from ...shared.utils.csv_operations import CSVOperations
 
 
-class TeacherMappingRepository:
+class TeacherMappingRepository(LoggingMixin):
     """教員マッピングCSVファイルからデータを読み込むリポジトリ"""
     
     def __init__(self, base_path: Path = Path(".")):
+        super().__init__()
         self.base_path = Path(base_path)
-        self.logger = logging.getLogger(__name__)
         self.permanent_absences = {}  # 恒久的な教師の休み情報
     
     def load_teacher_mapping(self, filename: str = "teacher_subject_mapping.csv") -> Dict[str, List[Tuple[Subject, List[ClassReference]]]]:
@@ -38,79 +39,77 @@ class TeacherMappingRepository:
         teacher_mapping = defaultdict(list)
         
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                reader = csv.DictReader(f)
+            rows = CSVOperations.read_csv(str(file_path))
+            
+            for row in rows:
+                teacher_name = row['教員名'].strip()
+                subject_name = row['教科'].strip()
+                grade = int(row['学年'].strip())
+                class_num = int(row['組'].strip())
                 
-                for row in reader:
-                    teacher_name = row['教員名'].strip()
-                    subject_name = row['教科'].strip()
-                    grade = int(row['学年'].strip())
-                    class_num = int(row['組'].strip())
-                    
-                    # 教科オブジェクトを作成
-                    try:
-                        subject = Subject(subject_name)
-                    except ValueError:
-                        self.logger.warning(f"無効な教科名をスキップ: {subject_name}")
-                        continue
-                    
-                    # クラス参照を作成
-                    class_ref = ClassReference(grade, class_num)
-                    
-                    # 同じ教員・教科の組み合わせが既にある場合はクラスを追加
-                    found = False
-                    for i, (existing_subject, existing_classes) in enumerate(teacher_mapping[teacher_name]):
-                        if existing_subject == subject:
-                            if class_ref not in existing_classes:
-                                existing_classes.append(class_ref)
-                            found = True
-                            break
-                    
-                    if not found:
-                        teacher_mapping[teacher_name].append((subject, [class_ref]))
+                # 教科オブジェクトを作成
+                try:
+                    subject = Subject(subject_name)
+                except ValueError:
+                    self.logger.warning(f"無効な教科名をスキップ: {subject_name}")
+                    continue
+                
+                # クラス参照を作成
+                class_ref = ClassReference(grade, class_num)
+                
+                # 同じ教員・教科の組み合わせが既にある場合はクラスを追加
+                found = False
+                for i, (existing_subject, existing_classes) in enumerate(teacher_mapping[teacher_name]):
+                    if existing_subject == subject:
+                        if class_ref not in existing_classes:
+                            existing_classes.append(class_ref)
+                        found = True
+                        break
+                
+                if not found:
+                    teacher_mapping[teacher_name].append((subject, [class_ref]))
             
             # 実際の教員マッピングも追加で読み込む
             actual_mapping_path = self.base_path / "actual_teacher_mapping.csv"
             if actual_mapping_path.exists():
                 self.logger.info("実際の教員マッピングを追加読み込み")
-                with open(actual_mapping_path, 'r', encoding='utf-8') as f:
-                    reader = csv.DictReader(f)
+                actual_rows = CSVOperations.read_csv(str(actual_mapping_path))
+                
+                for row in actual_rows:
+                    teacher_name = row['実際の教員名'].strip()
+                    subject_name = row['担当教科'].strip()
+                    grade = int(row['担当学年'].strip())
+                    class_num = int(row['担当クラス'].strip())
+                    remarks = row.get('備考', '').strip()
                     
-                    for row in reader:
-                        teacher_name = row['実際の教員名'].strip()
-                        subject_name = row['担当教科'].strip()
-                        grade = int(row['担当学年'].strip())
-                        class_num = int(row['担当クラス'].strip())
-                        remarks = row.get('備考', '').strip()
+                    # 備考欄は参考情報として無視する（実際の不在情報はFollow-up.csvから読み取る）
+                    # if remarks:
+                    #     absences = self._parse_permanent_absences(remarks)
+                    #     if absences:
+                    #         if teacher_name not in self.permanent_absences:
+                    #             self.permanent_absences[teacher_name] = []
+                    #         self.permanent_absences[teacher_name].extend(absences)
+                    #         self.logger.info(f"恒久的休み情報を検出: {teacher_name} - {absences}")
+                    
+                    try:
+                        subject = Subject(subject_name)
+                        class_ref = ClassReference(grade, class_num)
                         
-                        # 備考欄は参考情報として無視する（実際の不在情報はFollow-up.csvから読み取る）
-                        # if remarks:
-                        #     absences = self._parse_permanent_absences(remarks)
-                        #     if absences:
-                        #         if teacher_name not in self.permanent_absences:
-                        #             self.permanent_absences[teacher_name] = []
-                        #         self.permanent_absences[teacher_name].extend(absences)
-                        #         self.logger.info(f"恒久的休み情報を検出: {teacher_name} - {absences}")
+                        # 既存のマッピングを上書き
+                        found = False
+                        for i, (existing_subject, existing_classes) in enumerate(teacher_mapping[teacher_name]):
+                            if existing_subject == subject:
+                                if class_ref not in existing_classes:
+                                    existing_classes.append(class_ref)
+                                found = True
+                                break
                         
-                        try:
-                            subject = Subject(subject_name)
-                            class_ref = ClassReference(grade, class_num)
+                        if not found:
+                            teacher_mapping[teacher_name].append((subject, [class_ref]))
                             
-                            # 既存のマッピングを上書き
-                            found = False
-                            for i, (existing_subject, existing_classes) in enumerate(teacher_mapping[teacher_name]):
-                                if existing_subject == subject:
-                                    if class_ref not in existing_classes:
-                                        existing_classes.append(class_ref)
-                                    found = True
-                                    break
-                            
-                            if not found:
-                                teacher_mapping[teacher_name].append((subject, [class_ref]))
-                                
-                        except ValueError:
-                            self.logger.warning(f"無効な教科名をスキップ: {subject_name}")
-                            continue
+                    except ValueError:
+                        self.logger.warning(f"無効な教科名をスキップ: {subject_name}")
+                        continue
                 
             self.logger.info(f"教員マッピングを読み込みました: {len(teacher_mapping)}名の教員")
             self.logger.info(f"恒久的休み情報: {len(self.permanent_absences)}名の教員")
@@ -164,6 +163,21 @@ class TeacherMappingRepository:
                     # Teacherオブジェクトを作成（"先生"を含めたまま）
                     return Teacher(teacher_name)
         return None
+    
+    def get_all_teachers_for_subject_class(self, mapping: Dict, subject: Subject, class_ref: ClassReference) -> List[Teacher]:
+        """指定された教科・クラスの全ての担当教員を取得
+        
+        複数の教師が同じクラス・教科を担当している場合、
+        全ての教師を返します。
+        """
+        teachers = []
+        for teacher_name, assignments in mapping.items():
+            for assigned_subject, assigned_classes in assignments:
+                if assigned_subject == subject and class_ref in assigned_classes:
+                    teacher = Teacher(teacher_name)
+                    if teacher not in teachers:
+                        teachers.append(teacher)
+        return teachers
     
     def get_all_teacher_names(self, mapping: Dict) -> Set[str]:
         """全教員名を取得"""

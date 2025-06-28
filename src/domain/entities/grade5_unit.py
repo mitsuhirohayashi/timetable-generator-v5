@@ -6,9 +6,10 @@ from ..value_objects.assignment import Assignment
 from ..value_objects.special_support_hours import (
     SpecialSupportHour, SpecialSupportHourMapping
 )
+from ...shared.mixins.validation_mixin import ValidationMixin, ValidationError
 
 
-class Grade5Unit:
+class Grade5Unit(ValidationMixin):
     """5組を1つのユニットとして管理するエンティティ
     
     Args:
@@ -57,9 +58,13 @@ class Grade5Unit:
     
     def assign(self, time_slot: TimeSlot, subject: Subject, teacher: Optional[Teacher] = None) -> None:
         """5組全体に同じ教科・教員を割り当て"""
-        # ロックされている場合はエラー
+        # ロックされている場合はエラー（ただしロック時に既に同じ内容がある場合は許可）
         if self.is_locked(time_slot):
-            raise ValueError(f"Cell is locked: {time_slot} - Grade 5 Unit")
+            existing = self._assignments.get(time_slot)
+            if existing and existing.subject == subject and existing.teacher == teacher:
+                # 既に同じ内容が割り当てられている場合は何もしない
+                return
+            raise ValidationError(f"Cell is locked: {time_slot} - Grade 5 Unit")
         
         # 拡張機能：特別な教科のチェック
         if self.enable_hour_notation:

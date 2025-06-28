@@ -1,14 +1,15 @@
 """教師不在情報を事前に読み込むローダー"""
-from typing import Dict, Set, List
+from typing import Dict, Set, List, Tuple
 from pathlib import Path
-import logging
+
+from ...shared.mixins.logging_mixin import LoggingMixin
 
 
-class TeacherAbsenceLoader:
+class TeacherAbsenceLoader(LoggingMixin):
     """Follow-up.csvから教師不在情報を読み込む"""
     
     def __init__(self, absences=None):
-        self.logger = logging.getLogger(__name__)
+        super().__init__()
         # 外部から不在情報を注入できるように変更
         if absences is not None:
             self.absences = absences
@@ -77,6 +78,22 @@ class TeacherAbsenceLoader:
             self.absences[day]['all_day'] = []
             self.absences[day]['periods'] = {}
         
+        # 引数の型をチェックしてログ出力
+        self.logger.debug(f"teacher_absences type: {type(teacher_absences)}")
+        if isinstance(teacher_absences, dict):
+            # 辞書形式の場合: {teacher: [(day, period), ...]}
+            for teacher, absences in teacher_absences.items():
+                for day, period in absences:
+                    if day not in self.absences:
+                        self.absences[day] = {'all_day': [], 'periods': {}}
+                    if period not in self.absences[day]['periods']:
+                        self.absences[day]['periods'][period] = []
+                    if teacher not in self.absences[day]['periods'][period]:
+                        self.absences[day]['periods'][period].append(teacher)
+                        self.logger.info(f"不在情報を更新: {teacher} - {day}{period}限")
+            return
+        
+        # リスト形式の場合（既存のロジック）
         # パースされたデータから不在情報を構築
         for absence in teacher_absences:
             # dictとオブジェクトの両方に対応
@@ -88,22 +105,46 @@ class TeacherAbsenceLoader:
             else:
                 day = absence.day
                 teacher_name = absence.teacher_name
-                period = getattr(absence, 'period', None)
+                periods = getattr(absence, 'periods', None)  # periods（複数形）フィールド
                 reason = getattr(absence, 'reason', '')
             
             if day not in self.absences:
                 self.absences[day] = {'all_day': [], 'periods': {}}
             
-            if period is None:  # 終日不在
+            if not periods:  # 終日不在（空リストまたはNone）
                 if teacher_name not in self.absences[day]['all_day']:
                     self.absences[day]['all_day'].append(teacher_name)
                     self.logger.info(f"不在情報を更新: {teacher_name} - {day}終日 ({reason})")
             else:  # 時限別不在
-                if period not in self.absences[day]['periods']:
-                    self.absences[day]['periods'][period] = []
-                if teacher_name not in self.absences[day]['periods'][period]:
-                    self.absences[day]['periods'][period].append(teacher_name)
-                    self.logger.info(f"不在情報を更新: {teacher_name} - {day}{period}限 ({reason})")
+                for period in periods:
+                    if period not in self.absences[day]['periods']:
+                        self.absences[day]['periods'][period] = []
+                    if teacher_name not in self.absences[day]['periods'][period]:
+                        self.absences[day]['periods'][period].append(teacher_name)
+                        self.logger.info(f"不在情報を更新: {teacher_name} - {day}{period}限 ({reason})")
+    
+    @property
+    def teacher_absences(self) -> Dict[str, Set[Tuple[str, int]]]:
+        """ConstraintValidatorが期待する形式で教師不在情報を提供
+        
+        Returns:
+            Dict[str, Set[Tuple[str, int]]]: 教師名 -> (曜日, 時限)のセット
+        """
+        result = {}
+        for day, day_absences in self.absences.items():
+            # 終日不在
+            for teacher in day_absences.get('all_day', []):
+                if teacher not in result:
+                    result[teacher] = set()
+                for period in range(1, 7):
+                    result[teacher].add((day, period))
+            # 時限別不在
+            for period, teachers in day_absences.get('periods', {}).items():
+                for teacher in teachers:
+                    if teacher not in result:
+                        result[teacher] = set()
+                    result[teacher].add((day, period))
+        return result
     
     def _integrate_permanent_absences(self):
         """恒久的休み情報を統合"""

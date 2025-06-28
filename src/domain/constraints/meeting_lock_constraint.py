@@ -1,27 +1,32 @@
 """会議ロック制約 - 会議時間は該当教員の授業を禁止"""
-from typing import List, Dict, Set, Tuple
+from typing import List, Dict, Set, Tuple, Optional
 from pathlib import Path
 from .base import Constraint, ConstraintResult, ConstraintType, ConstraintPriority, ConstraintViolation
 from ..entities.schedule import Schedule
 from ..entities.school import School
 from ..value_objects.time_slot import TimeSlot
+from ..interfaces.configuration_reader import IConfigurationReader
 
 
 class MeetingLockConstraint(Constraint):
     """会議ロック制約 - 会議・委員会の時間は該当メンバーの授業を禁止"""
     
-    def __init__(self):
+    def __init__(self, config_reader: Optional[IConfigurationReader] = None):
         super().__init__(
             constraint_type=ConstraintType.HARD,
             priority=ConstraintPriority.CRITICAL,
             name="会議ロック制約",
             description="会議時間は該当教員の授業を禁止"
         )
+        
+        # 依存性注入
+        if config_reader is None:
+            from ...infrastructure.di_container import get_configuration_reader
+            config_reader = get_configuration_reader()
+        
         # 会議と参加メンバーの定義を設定ファイルから読み込む
         try:
-            from ...infrastructure.repositories.config_repository import ConfigRepository
-            config_repo = ConfigRepository()
-            self.meetings = config_repo.load_meeting_info()
+            self.meetings = config_reader.get_meeting_info()
         except:
             # フォールバック - 正しい会議時間を設定
             self.meetings = {

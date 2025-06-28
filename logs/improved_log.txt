@@ -1,0 +1,3 @@
+usage: main.py [-h] [--verbose] [--quiet] [--data-dir DATA_DIR]
+               {generate,validate,fix} ...
+main.py: error: unrecognized arguments: --verbose

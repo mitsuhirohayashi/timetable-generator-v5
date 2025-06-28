@@ -110,8 +110,8 @@ class SubjectValidator:
                 with open(teacher_mapping_path, 'r', encoding='utf-8') as f:
                     reader = csv.DictReader(f)
                     for row in reader:
-                        subject = row['教科'].strip()
-                        teacher = row['デフォルト教師'].strip()
+                        subject = row.get('教科', '').strip()
+                        teacher = row.get('デフォルト教員名', '').strip()
                         if subject and teacher:
                             self._default_teachers[subject] = teacher
             except Exception as e:
@@ -143,6 +143,8 @@ class SubjectValidator:
     
     def is_valid_subject(self, subject: str) -> bool:
         """有効な教科かどうか判定"""
+        if subject is None:
+            return False
         if self._config:
             return subject in self._config.valid_subjects
         else:

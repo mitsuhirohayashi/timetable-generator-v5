@@ -5,7 +5,9 @@
 import logging
 import logging.handlers
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
+import json
+from datetime import datetime
 
 
 class LoggingConfig:
@@ -33,6 +35,7 @@ class LoggingConfig:
         
         # CSP関連は情報レベル
         'src.domain.services.csp': 'INFO',
+        'src.domain.services.implementations': 'DEBUG',  # 配置サービスのデバッグ
         
         # その他はエラーのみ
         'src': 'ERROR'
@@ -65,7 +68,8 @@ class LoggingConfig:
                 '%(levelname)s: %(message)s'
             )
         else:
-            formatter = logging.Formatter(
+            # 開発環境ではカスタムフォーマッターを使用
+            formatter = ContextFormatter(
                 '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                 datefmt='%Y-%m-%d %H:%M:%S'
             )
@@ -124,6 +128,71 @@ class LoggingConfig:
         )
 
 
+class ContextFormatter(logging.Formatter):
+    """コンテキスト情報を含むカスタムフォーマッター"""
+    
+    def format(self, record):
+        # 基本フォーマット
+        formatted = super().format(record)
+        
+        # コンテキスト情報があれば追加
+        if hasattr(record, 'context'):
+            context_str = json.dumps(record.context, ensure_ascii=False, indent=2)
+            formatted += f"\n  Context: {context_str}"
+        
+        # エラーの場合は追加情報
+        if record.levelno >= logging.ERROR and hasattr(record, 'error_details'):
+            details = record.error_details
+            formatted += f"\n  Error Details: {json.dumps(details, ensure_ascii=False, indent=2)}"
+        
+        return formatted
+
+
+class ScheduleGenerationLogger:
+    """時間割生成専用のロガーラッパー"""
+    
+    def __init__(self, logger: logging.Logger):
+        self.logger = logger
+        self.context = {}
+    
+    def set_context(self, **kwargs):
+        """ログコンテキストを設定"""
+        self.context.update(kwargs)
+    
+    def clear_context(self):
+        """ログコンテキストをクリア"""
+        self.context.clear()
+    
+    def info(self, message: str, **kwargs):
+        """情報ログ（コンテキスト付き）"""
+        extra = {'context': {**self.context, **kwargs}} if self.context or kwargs else {}
+        self.logger.info(message, extra=extra)
+    
+    def warning(self, message: str, **kwargs):
+        """警告ログ（コンテキスト付き）"""
+        extra = {'context': {**self.context, **kwargs}} if self.context or kwargs else {}
+        self.logger.warning(message, extra=extra)
+    
+    def error(self, message: str, error_details: Dict[str, Any] = None, **kwargs):
+        """エラーログ（詳細情報付き）"""
+        extra = {
+            'context': {**self.context, **kwargs},
+            'error_details': error_details or {}
+        }
+        self.logger.error(message, extra=extra, exc_info=True)
+    
+    def phase_start(self, phase_name: str, **kwargs):
+        """フェーズ開始ログ"""
+        self.set_context(phase=phase_name)
+        self.info(f"=== {phase_name} 開始 ===", **kwargs)
+    
+    def phase_end(self, phase_name: str, success: bool = True, **kwargs):
+        """フェーズ終了ログ"""
+        status = "完了" if success else "失敗"
+        self.info(f"=== {phase_name} {status} ===", **kwargs)
+        self.clear_context()
+
+
 def get_logger(name: str) -> logging.Logger:
     """統一されたロガーを取得
     
@@ -134,3 +203,15 @@ def get_logger(name: str) -> logging.Logger:
         設定済みのロガー
     """
     return logging.getLogger(name)
+
+
+def get_schedule_logger(name: str) -> ScheduleGenerationLogger:
+    """時間割生成専用ロガーを取得
+    
+    Args:
+        name: ロガー名（通常は__name__）
+        
+    Returns:
+        時間割生成専用ロガー
+    """
+    return ScheduleGenerationLogger(get_logger(name))

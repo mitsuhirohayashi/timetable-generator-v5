@@ -1,0 +1,13 @@
+
+--- a/src/domain/services/core/smart_empty_slot_filler.py
++++ b/src/domain/services/core/smart_empty_slot_filler.py
+@@ -307,6 +307,9 @@ class SmartEmptySlotFiller(LoggingMixin):
+             if can_place:
+                 # 割り当て実行
+                 schedule.assign(time_slot, assignment)
++                # キャッシュをクリア（重要：新しい割り当て後は必ずキャッシュをクリア）
++                self.constraint_validator.clear_cache()
++                
+                 self.logger.debug(
+                     f"{time_slot} {class_ref}: {subject.name}({teacher.name})を割り当て（{strategy.name}戦略）"
+                 )

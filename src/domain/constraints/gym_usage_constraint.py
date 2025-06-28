@@ -12,9 +12,13 @@ from ..entities.schedule import Schedule
 from ..entities.school import School
 from ..value_objects.time_slot import TimeSlot
 from ..value_objects.assignment import Assignment, ClassReference
+from ..constants import WEEKDAYS, PERIODS
+from ...shared.mixins.logging_mixin import LoggingMixin
+from ...shared.utils.csv_operations import CSVOperations
+from ...shared.utils.path_utils import PathUtils
 
 
-class GymUsageConstraintRefactored(HardConstraint):
+class GymUsageConstraintRefactored(LoggingMixin, HardConstraint):
     """体育館使用制約（合同体育を考慮）
     
     保健体育の授業は体育館が1つしかないため、
@@ -28,7 +32,6 @@ class GymUsageConstraintRefactored(HardConstraint):
             name="体育館使用制約（合同体育対応）",
             description="保健体育は同時に1グループまで（合同体育を考慮）"
         )
-        self.logger = logging.getLogger(__name__)
         self.joint_pe_groups = self._load_joint_pe_config()
         self.logger.info(f"Loaded joint PE groups: {self._format_joint_pe_groups()}")
     
@@ -42,7 +45,7 @@ class GymUsageConstraintRefactored(HardConstraint):
         
         try:
             # Load Grade 5 PE configuration from team_teaching_config.json
-            config_path = Path(__file__).parent.parent.parent.parent / "data" / "config" / "team_teaching_config.json"
+            config_path = PathUtils.get_config_dir() / "team_teaching_config.json"
             
             if config_path.exists():
                 with open(config_path, 'r', encoding='utf-8') as f:
@@ -70,13 +73,11 @@ class GymUsageConstraintRefactored(HardConstraint):
                             self.logger.debug(f"Loaded joint PE group {group_name}: {[str(c) for c in class_refs]}")
             
             # Load exchange class pairs from exchange_class_pairs.csv
-            exchange_pairs_path = Path(__file__).parent.parent.parent.parent / "data" / "config" / "exchange_class_pairs.csv"
+            exchange_pairs_path = PathUtils.get_config_dir() / "exchange_class_pairs.csv"
             
             if exchange_pairs_path.exists():
-                import csv
-                with open(exchange_pairs_path, 'r', encoding='utf-8') as f:
-                    reader = csv.DictReader(f)
-                    for row in reader:
+                rows = CSVOperations.read_csv(str(exchange_pairs_path))
+                for row in rows:
                         exchange_class = row['exchange_class']
                         parent_class = row['parent_class']
                         
@@ -151,6 +152,12 @@ class GymUsageConstraintRefactored(HardConstraint):
         if assignment.subject.name != "保":
             return True
         
+        # テスト期間中は体育館を使わないのでチェック不要
+        from ..services.core.test_period_protector import TestPeriodProtector
+        test_protector = TestPeriodProtector()
+        if test_protector.is_test_period(time_slot):
+            return True
+        
         # この時間の全ての割り当てをチェック
         assignments = schedule.get_assignments_by_time_slot(time_slot)
         pe_assignments = [a for a in assignments if a.subject.name == "保"]
@@ -164,12 +171,16 @@ class GymUsageConstraintRefactored(HardConstraint):
         
         # If it's a joint PE session, allow it
         if self._is_joint_pe_session(proposed_pe_classes):
+            self.logger.debug(
+                f"{time_slot}: {assignment.class_ref}は合同体育グループの一部として配置可能 "
+                f"(既存: {[str(c) for c in existing_pe_classes]})"
+            )
             return True
         
         # Otherwise, only allow if no other PE classes exist
         if len(pe_assignments) >= 1:
-            self.logger.debug(
-                f"{time_slot}に既に保健体育が実施中 "
+            self.logger.warning(
+                f"体育館使用制約違反を防止: {time_slot}に既に保健体育が実施中 "
                 f"({[str(a.class_ref) for a in pe_assignments]})。"
                 f"{assignment.class_ref}は合同体育グループに含まれないため配置不可"
             )
@@ -182,10 +193,16 @@ class GymUsageConstraintRefactored(HardConstraint):
         violations = []
         
         # 各時間枠で保健体育の実施クラス数をチェック
-        for day in ["月", "火", "水", "木", "金"]:
-            for period in range(1, 7):
+        for day in WEEKDAYS:
+            for period in PERIODS:
                 time_slot = TimeSlot(day, period)
                 assignments = schedule.get_assignments_by_time_slot(time_slot)
+                
+                # テスト期間中は体育館を使わないのでスキップ
+                from ..services.core.test_period_protector import TestPeriodProtector
+                test_protector = TestPeriodProtector()
+                if test_protector.is_test_period(time_slot):
+                    continue
                 
                 # 保健体育の授業を収集
                 pe_assignments = []
@@ -220,3 +237,7 @@ class GymUsageConstraintRefactored(HardConstraint):
             constraint_name=self.name,
             violations=violations
         )
+
+
+# Alias for backward compatibility
+GymUsageConstraint = GymUsageConstraintRefactored

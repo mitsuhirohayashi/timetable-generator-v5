@@ -1,8 +1,9 @@
 """basics.csvの制約定義を読み込むパーサー"""
 from pathlib import Path
 from typing import List, Dict, Any
-import csv
 from dataclasses import dataclass
+
+from ...shared.utils.csv_operations import CSVOperations
 
 
 @dataclass
@@ -29,17 +30,16 @@ class BasicsParser:
         """
         constraints = []
         
-        with open(file_path, 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                constraint = BasicConstraint(
-                    constraint_type=row['制約タイプ'],
-                    target=row['対象'],
-                    condition=row['条件'],
-                    content=row['内容'],
-                    priority=row['優先度']
-                )
-                constraints.append(constraint)
+        rows = CSVOperations.read_csv(str(file_path))
+        for row in rows:
+            constraint = BasicConstraint(
+                constraint_type=row['制約タイプ'],
+                target=row['対象'],
+                condition=row['条件'],
+                content=row['内容'],
+                priority=row['優先度']
+            )
+            constraints.append(constraint)
                 
         return constraints
     
