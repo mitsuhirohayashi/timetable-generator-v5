@@ -59,7 +59,9 @@
       "Bash(do [ -f \"$file\" ])",
       "Bash(USE_REFACTORED_USE_CASE=false python3 main.py generate --use-ultra-optimized)",
       "Bash(zip:*)",
-      "Bash(git remote add:*)"
+      "Bash(git remote add:*)",
+      "Bash(git remote remove:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }
