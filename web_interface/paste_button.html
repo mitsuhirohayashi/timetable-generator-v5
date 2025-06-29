@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時間割データ貼り付けツール</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .primary-btn {
+            background-color: #007bff;
+            color: white;
+        }
+        .primary-btn:hover {
+            background-color: #0056b3;
+        }
+        .success-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .success-btn:hover {
+            background-color: #218838;
+        }
+        .secondary-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+        .secondary-btn:hover {
+            background-color: #545b62;
+        }
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+            margin: 10px 0;
+        }
+        .help-text {
+            background-color: #e3f2fd;
+            border: 1px solid #90caf9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .status-message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .preview {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        pre {
+            margin: 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>時間割データ貼り付けツール</h1>
+        
+        <div class="help-text">
+            <strong>使い方：</strong>
+            <ol>
+                <li>Excelからコピーしたデータ（タブ区切り）またはCSVデータを下のテキストエリアに貼り付けてください</li>
+                <li>「CSV形式に変換」ボタンをクリックすると、タブ区切りデータがCSV形式に変換されます</li>
+                <li>「クリップボードにコピー」ボタンでコピーして、時間割編集ツールに貼り付けてください</li>
+            </ol>
+            <strong>注意：</strong>空白セルは保持されます。
+        </div>
+
+        <div class="button-group">
+            <button class="primary-btn" onclick="pasteFromClipboard()">クリップボードから貼り付け</button>
+            <button class="success-btn" onclick="convertData()">CSV形式に変換</button>
+            <button class="secondary-btn" onclick="clearData()">クリア</button>
+        </div>
+
+        <h3>入力データ（Excel/タブ区切り/CSV）</h3>
+        <textarea id="inputData" placeholder="ここにデータを貼り付けてください..."></textarea>
+
+        <div class="button-group">
+            <button class="primary-btn" onclick="copyToClipboard()">変換結果をクリップボードにコピー</button>
+            <button class="secondary-btn" onclick="downloadCSV()">CSVファイルとしてダウンロード</button>
+        </div>
+
+        <h3>変換結果（CSV形式）</h3>
+        <textarea id="outputData" placeholder="変換結果がここに表示されます..." readonly></textarea>
+
+        <h3>プレビュー</h3>
+        <div class="preview">
+            <pre id="previewData">変換後のデータがここにプレビュー表示されます</pre>
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script>
+        // タブ区切りデータをCSVに変換
+        function convertTabToCSV(text) {
+            // 各行を処理
+            const lines = text.split('\n');
+            const csvLines = lines.map(line => {
+                // タブで分割
+                const cells = line.split('\t');
+                // 各セルをクォートで囲む必要があるかチェック
+                const quotedCells = cells.map(cell => {
+                    // カンマ、改行、ダブルクォートが含まれる場合はクォートで囲む
+                    if (cell.includes(',') || cell.includes('\n') || cell.includes('"')) {
+                        // ダブルクォートをエスケープ
+                        const escaped = cell.replace(/"/g, '""');
+                        return `"${escaped}"`;
+                    }
+                    return cell;
+                });
+                // カンマで結合
+                return quotedCells.join(',');
+            });
+            return csvLines.join('\n');
+        }
+
+        // データ変換
+        function convertData() {
+            const input = document.getElementById('inputData').value;
+            if (!input) {
+                showMessage('変換するデータがありません', 'error');
+                return;
+            }
+
+            let output;
+            // タブが含まれている場合はタブ区切りと判定
+            if (input.includes('\t')) {
+                output = convertTabToCSV(input);
+                showMessage('タブ区切りデータをCSV形式に変換しました', 'success');
+            } else {
+                // すでにCSV形式の場合はそのまま
+                output = input;
+                showMessage('CSV形式のデータです（変換不要）', 'info');
+            }
+
+            document.getElementById('outputData').value = output;
+            updatePreview(output);
+        }
+
+        // プレビュー更新
+        function updatePreview(data) {
+            const lines = data.split('\n').slice(0, 10); // 最初の10行のみ表示
+            let preview = lines.join('\n');
+            if (data.split('\n').length > 10) {
+                preview += '\n... (残りの行は省略)';
+            }
+            document.getElementById('previewData').textContent = preview;
+        }
+
+        // クリップボードから貼り付け
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('inputData').value = text;
+                showMessage('クリップボードから貼り付けました', 'success');
+                // 自動的に変換
+                convertData();
+            } catch (err) {
+                document.getElementById('inputData').focus();
+                showMessage('Ctrl+V (Cmd+V) でテキストエリアに貼り付けてください', 'info');
+            }
+        }
+
+        // クリップボードにコピー
+        async function copyToClipboard() {
+            const text = document.getElementById('outputData').value;
+            if (!text) {
+                showMessage('コピーするデータがありません', 'error');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(text);
+                showMessage('クリップボードにコピーしました', 'success');
+            } catch (err) {
+                // Fallback
+                document.getElementById('outputData').select();
+                document.execCommand('copy');
+                showMessage('クリップボードにコピーしました', 'success');
+            }
+        }
+
+        // CSVダウンロード
+        function downloadCSV() {
+            const content = document.getElementById('outputData').value;
+            if (!content) {
+                showMessage('ダウンロードするデータがありません', 'error');
+                return;
+            }
+
+            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+            const blob = new Blob([bom, content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'timetable_data.csv';
+            link.click();
+            showMessage('CSVファイルをダウンロードしました', 'success');
+        }
+
+        // データクリア
+        function clearData() {
+            document.getElementById('inputData').value = '';
+            document.getElementById('outputData').value = '';
+            document.getElementById('previewData').textContent = '変換後のデータがここにプレビュー表示されます';
+            showMessage('データをクリアしました', 'info');
+        }
+
+        // メッセージ表示
+        function showMessage(message, type) {
+            const messageElement = document.getElementById('statusMessage');
+            messageElement.textContent = message;
+            messageElement.className = 'status-message ' + type;
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
+        }
+
+        // テキストエリアでの貼り付けを監視
+        document.getElementById('inputData').addEventListener('paste', function(e) {
+            setTimeout(() => {
+                convertData();
+            }, 100);
+        });
+    </script>
+</body>
+</html>

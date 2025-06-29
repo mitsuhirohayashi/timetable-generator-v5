@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時間割作成ツール - 編集インターフェース</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #555;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .primary-btn {
+            background-color: #007bff;
+            color: white;
+        }
+        .primary-btn:hover {
+            background-color: #0056b3;
+        }
+        .secondary-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+        .secondary-btn:hover {
+            background-color: #545b62;
+        }
+        .success-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .success-btn:hover {
+            background-color: #218838;
+        }
+        .info-btn {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .info-btn:hover {
+            background-color: #138496;
+        }
+        .warning-btn {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .warning-btn:hover {
+            background-color: #e0a800;
+        }
+        .danger-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .danger-btn:hover {
+            background-color: #c82333;
+        }
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: center;
+            min-width: 30px;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .class-name {
+            background-color: #e9ecef;
+            font-weight: bold;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            min-width: 60px;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .table-container {
+            overflow: auto;
+            max-height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            position: relative;
+        }
+        .status-message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        td input {
+            width: 100%;
+            border: none;
+            padding: 4px;
+            text-align: center;
+            background: transparent;
+            font-size: 12px;
+        }
+        td input:focus {
+            outline: 2px solid #007bff;
+            background: white;
+        }
+        .empty-row td {
+            background-color: #f0f0f0;
+            height: 20px;
+        }
+        .period-header {
+            background-color: #e7f1ff;
+        }
+        .day-header {
+            background-color: #fff3cd;
+        }
+        .edit-mode {
+            background-color: #fffde7;
+        }
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            background-color: #e9ecef;
+            transition: background-color 0.3s;
+        }
+        .tab.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .help-text {
+            color: #6c757d;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        #loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 8px;
+            z-index: 1000;
+        }
+        .changed {
+            background-color: #ffe0b2 !important;
+        }
+        .save-indicator {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            background-color: #ffc107;
+            color: #212529;
+        }
+    </style>
+</head>
+<body>
+    <h1>時間割作成ツール - 編集インターフェース</h1>
+    
+    <div class="container">
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('input')">
+                入力データ編集
+                <span id="saveIndicator" class="save-indicator" style="display: none;">未保存の変更</span>
+            </div>
+            <div class="tab" onclick="switchTab('output')">出力データ表示</div>
+        </div>
+
+        <div id="inputTab" class="tab-content active">
+            <div class="section">
+                <h2>入力データ編集 (input.csv)</h2>
+                <div class="button-group">
+                    <button class="info-btn" onclick="loadInputData()">現在のデータを読み込む</button>
+                    <button class="success-btn" onclick="saveInputData()">変更を保存</button>
+                    <button class="warning-btn" onclick="resetToOriginal()">元に戻す</button>
+                    <button class="primary-btn" onclick="copyToClipboard('input')">クリップボードにコピー</button>
+                    <button class="secondary-btn" onclick="switchView('table')">テーブル表示</button>
+                    <button class="secondary-btn" onclick="switchView('text')">テキスト表示</button>
+                    <button class="info-btn" onclick="showPasteDialog()">Excelから貼り付け</button>
+                </div>
+                <div class="help-text">
+                    セルをクリックして直接編集できます。編集後は「変更を保存」ボタンをクリックしてください。<br>
+                    <strong>ヒント：</strong>
+                    <ul style="margin: 5px 0; padding-left: 20px;">
+                        <li>「Excelから貼り付け」ボタンで教科データのみを貼り付けることができます</li>
+                        <li>教科データのみの場合、クラス名とヘッダーは自動的に保持されます</li>
+                        <li>テキスト表示でタブ区切りデータを貼り付けると自動変換されます</li>
+                    </ul>
+                </div>
+                <div id="inputTableView" class="table-container" style="display: block;"></div>
+                <textarea id="inputTextView" style="display: none;"></textarea>
+            </div>
+        </div>
+
+        <div id="outputTab" class="tab-content">
+            <div class="section">
+                <h2>出力データ表示 (output.csv)</h2>
+                <div class="button-group">
+                    <button class="info-btn" onclick="loadOutputData()">出力データを読み込む</button>
+                    <button class="danger-btn" onclick="runTimetableGenerator()">時間割生成プログラムを実行</button>
+                    <button class="primary-btn" onclick="copyToClipboard('output')">全データをコピー</button>
+                    <button class="success-btn" onclick="copySubjectsOnly()">教科データのみコピー（Excel用）</button>
+                    <button class="primary-btn" onclick="downloadCSV()">CSVファイルをダウンロード</button>
+                    <button class="secondary-btn" onclick="switchOutputView('table')">テーブル表示</button>
+                    <button class="secondary-btn" onclick="switchOutputView('text')">テキスト表示</button>
+                </div>
+                <div class="help-text">
+                    「時間割生成プログラムを実行」ボタンで、現在のinput.csvから新しい時間割を生成できます。<br>
+                    <strong>コピーオプション：</strong>
+                    <ul style="margin: 5px 0; padding-left: 20px;">
+                        <li>「教科データのみコピー」：教科部分だけをタブ区切りでコピー（Excelに直接貼り付け可能）</li>
+                        <li>「全データをコピー」：ヘッダーを含む全データをCSV形式でコピー</li>
+                    </ul>
+                </div>
+                <div id="outputTableView" class="table-container" style="display: block;"></div>
+                <textarea id="outputTextView" style="display: none;" readonly></textarea>
+            </div>
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <div id="loading">
+        <div>処理中...</div>
+    </div>
+
+    <!-- Excelデータ貼り付けダイアログ -->
+    <div id="pasteDialog" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 2000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; width: 80%; max-width: 800px; max-height: 80vh; overflow-y: auto;">
+            <h3>Excelデータの貼り付け</h3>
+            <p>Excelからコピーしたデータ（タブ区切り）を下のテキストエリアに貼り付けてください。</p>
+            <div style="margin: 10px 0;">
+                <label>
+                    <input type="radio" name="dataType" value="subjects" checked> 教科データのみ（ヘッダーなし）
+                </label>
+                <label style="margin-left: 20px;">
+                    <input type="radio" name="dataType" value="full"> 完全なデータ（ヘッダー付き）
+                </label>
+            </div>
+            <textarea id="pasteArea" style="width: 100%; height: 300px; margin: 10px 0;" placeholder="ここにExcelからコピーしたデータを貼り付けてください..."></textarea>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="secondary-btn" onclick="closePasteDialog()">キャンセル</button>
+                <button class="success-btn" onclick="processPastedData()">変換して適用</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentInputData = '';
+        let originalInputData = '';
+        let currentOutputData = '';
+        let hasUnsavedChanges = false;
+        let currentView = 'table';
+        let currentTab = 'input';
+
+        // ページ読み込み時の処理
+        window.addEventListener('load', function() {
+            loadInputData();
+            loadOutputData();
+        });
+
+        // ページを離れる前の警告
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '未保存の変更があります。ページを離れますか？';
+            }
+        });
+
+        // タブ切り替え
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'input') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('inputTab').classList.add('active');
+            } else {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('outputTab').classList.add('active');
+            }
+        }
+
+        // 表示切り替え（入力）
+        function switchView(view) {
+            currentView = view;
+            if (view === 'table') {
+                document.getElementById('inputTableView').style.display = 'block';
+                document.getElementById('inputTextView').style.display = 'none';
+                csvToEditableTable(currentInputData, 'inputTableView');
+            } else {
+                document.getElementById('inputTableView').style.display = 'none';
+                document.getElementById('inputTextView').style.display = 'block';
+                document.getElementById('inputTextView').value = currentInputData;
+            }
+        }
+
+        // 表示切り替え（出力）
+        function switchOutputView(view) {
+            if (view === 'table') {
+                document.getElementById('outputTableView').style.display = 'block';
+                document.getElementById('outputTextView').style.display = 'none';
+                csvToReadOnlyTable(currentOutputData, 'outputTableView');
+            } else {
+                document.getElementById('outputTableView').style.display = 'none';
+                document.getElementById('outputTextView').style.display = 'block';
+                document.getElementById('outputTextView').value = currentOutputData;
+            }
+        }
+
+        // CSVを編集可能なテーブルに変換
+        function csvToEditableTable(csv, containerId) {
+            const lines = csv.trim().split('\n');
+            if (lines.length === 0) return;
+
+            let html = '<table id="editableTable">';
+            
+            lines.forEach((line, rowIndex) => {
+                const cells = line.split(',');
+                html += '<tr>';
+                
+                // 空行の処理
+                if (cells.every(cell => cell === '')) {
+                    html += '<td colspan="31" class="empty-row"></td>';
+                } else {
+                    cells.forEach((cell, colIndex) => {
+                        if (rowIndex === 0) {
+                            // ヘッダー行（曜日）
+                            html += `<th class="${colIndex === 0 ? 'class-name' : 'day-header'}">${escapeHtml(cell)}</th>`;
+                        } else if (rowIndex === 1) {
+                            // 時限行
+                            html += `<th class="${colIndex === 0 ? 'class-name' : 'period-header'}">${escapeHtml(cell)}</th>`;
+                        } else if (colIndex === 0) {
+                            // クラス名列
+                            html += `<td class="class-name">${escapeHtml(cell)}</td>`;
+                        } else {
+                            // 通常のセル（編集可能）
+                            html += `<td><input type="text" value="${escapeHtml(cell)}" 
+                                     data-row="${rowIndex}" data-col="${colIndex}" 
+                                     onchange="updateCell(this)" onfocus="this.select()"></td>`;
+                        }
+                    });
+                }
+                html += '</tr>';
+            });
+            
+            html += '</table>';
+            document.getElementById(containerId).innerHTML = html;
+        }
+
+        // CSVを読み取り専用テーブルに変換
+        function csvToReadOnlyTable(csv, containerId) {
+            const lines = csv.trim().split('\n');
+            if (lines.length === 0) return;
+
+            let html = '<table>';
+            
+            lines.forEach((line, rowIndex) => {
+                const cells = line.split(',');
+                html += '<tr>';
+                
+                // 空行の処理
+                if (cells.every(cell => cell === '')) {
+                    html += '<td colspan="31" class="empty-row"></td>';
+                } else {
+                    cells.forEach((cell, colIndex) => {
+                        if (rowIndex === 0) {
+                            html += `<th class="${colIndex === 0 ? 'class-name' : 'day-header'}">${escapeHtml(cell)}</th>`;
+                        } else if (rowIndex === 1) {
+                            html += `<th class="${colIndex === 0 ? 'class-name' : 'period-header'}">${escapeHtml(cell)}</th>`;
+                        } else if (colIndex === 0) {
+                            html += `<td class="class-name">${escapeHtml(cell)}</td>`;
+                        } else {
+                            html += `<td>${escapeHtml(cell)}</td>`;
+                        }
+                    });
+                }
+                html += '</tr>';
+            });
+            
+            html += '</table>';
+            document.getElementById(containerId).innerHTML = html;
+        }
+
+        // セルの更新
+        function updateCell(input) {
+            const row = parseInt(input.dataset.row);
+            const col = parseInt(input.dataset.col);
+            const value = input.value;
+            
+            // CSVデータを更新
+            const lines = currentInputData.split('\n');
+            const cells = lines[row].split(',');
+            cells[col] = value;
+            lines[row] = cells.join(',');
+            currentInputData = lines.join('\n');
+            
+            // テキストビューも更新
+            document.getElementById('inputTextView').value = currentInputData;
+            
+            // 変更フラグを立てる
+            if (currentInputData !== originalInputData) {
+                hasUnsavedChanges = true;
+                document.getElementById('saveIndicator').style.display = 'inline-block';
+                input.classList.add('changed');
+            }
+        }
+
+        // タブ区切りデータをCSVに変換
+        function convertTabToCSV(text) {
+            // 各行を処理
+            const lines = text.split('\n');
+            const csvLines = lines.map(line => {
+                // タブで分割
+                const cells = line.split('\t');
+                // カンマで結合
+                return cells.join(',');
+            });
+            return csvLines.join('\n');
+        }
+
+        // データ形式を自動判定して処理
+        function processInputData(text) {
+            // タブが含まれている場合はタブ区切りと判定
+            if (text.includes('\t')) {
+                return convertTabToCSV(text);
+            }
+            return text;
+        }
+
+        // テキストエリアの変更監視
+        document.getElementById('inputTextView').addEventListener('input', function() {
+            currentInputData = this.value;
+            if (currentInputData !== originalInputData) {
+                hasUnsavedChanges = true;
+                document.getElementById('saveIndicator').style.display = 'inline-block';
+            }
+        });
+
+        // テキストエリアへの貼り付けを監視
+        document.getElementById('inputTextView').addEventListener('paste', function(e) {
+            setTimeout(() => {
+                const pastedText = this.value;
+                const processedText = processInputData(pastedText);
+                if (processedText !== pastedText) {
+                    this.value = processedText;
+                    currentInputData = processedText;
+                    showMessage('タブ区切りデータをCSV形式に自動変換しました', 'info');
+                }
+                if (currentInputData !== originalInputData) {
+                    hasUnsavedChanges = true;
+                    document.getElementById('saveIndicator').style.display = 'inline-block';
+                }
+            }, 100);
+        });
+
+        // HTMLエスケープ
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // 入力データを読み込む
+        async function loadInputData() {
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/load-input');
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentInputData = result.data;
+                    originalInputData = result.data;
+                    hasUnsavedChanges = false;
+                    document.getElementById('saveIndicator').style.display = 'none';
+                    
+                    if (currentView === 'table') {
+                        csvToEditableTable(currentInputData, 'inputTableView');
+                    } else {
+                        document.getElementById('inputTextView').value = currentInputData;
+                    }
+                    
+                    showMessage('入力データを読み込みました', 'success');
+                } else {
+                    showMessage('エラー: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('読み込みエラー: ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // 出力データを読み込む
+        async function loadOutputData() {
+            try {
+                const response = await fetch('/api/load-output');
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentOutputData = result.data;
+                    csvToReadOnlyTable(currentOutputData, 'outputTableView');
+                    document.getElementById('outputTextView').value = currentOutputData;
+                    showMessage('出力データを読み込みました', 'success');
+                } else {
+                    showMessage('エラー: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('読み込みエラー: ' + error.message, 'error');
+            }
+        }
+
+        // 入力データを保存
+        async function saveInputData() {
+            if (!hasUnsavedChanges) {
+                showMessage('変更がありません', 'info');
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                // テキストビューが表示されている場合は、そのデータを使用
+                if (document.getElementById('inputTextView').style.display !== 'none') {
+                    currentInputData = document.getElementById('inputTextView').value;
+                }
+                
+                const response = await fetch('/api/save-input', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content: currentInputData })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    originalInputData = currentInputData;
+                    hasUnsavedChanges = false;
+                    document.getElementById('saveIndicator').style.display = 'none';
+                    document.querySelectorAll('.changed').forEach(el => el.classList.remove('changed'));
+                    showMessage('input.csvを保存しました', 'success');
+                } else {
+                    showMessage('保存エラー: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('保存エラー: ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // 元に戻す
+        function resetToOriginal() {
+            if (!hasUnsavedChanges) {
+                showMessage('変更がありません', 'info');
+                return;
+            }
+            
+            if (confirm('すべての変更を元に戻しますか？')) {
+                currentInputData = originalInputData;
+                hasUnsavedChanges = false;
+                document.getElementById('saveIndicator').style.display = 'none';
+                
+                if (currentView === 'table') {
+                    csvToEditableTable(currentInputData, 'inputTableView');
+                } else {
+                    document.getElementById('inputTextView').value = currentInputData;
+                }
+                
+                showMessage('変更を元に戻しました', 'info');
+            }
+        }
+
+        // 時間割生成プログラムを実行
+        async function runTimetableGenerator() {
+            if (hasUnsavedChanges) {
+                if (!confirm('未保存の変更があります。保存せずに時間割を生成しますか？')) {
+                    return;
+                }
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/run-timetable', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentOutputData = result.outputData;
+                    csvToReadOnlyTable(currentOutputData, 'outputTableView');
+                    document.getElementById('outputTextView').value = currentOutputData;
+                    showMessage('時間割生成が完了しました', 'success');
+                    
+                    // 出力タブに切り替え
+                    switchTab('output');
+                } else {
+                    showMessage('生成エラー: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('実行エラー: ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // クリップボードにコピー
+        async function copyToClipboard(type) {
+            try {
+                const data = type === 'input' ? currentInputData : currentOutputData;
+                await navigator.clipboard.writeText(data);
+                showMessage('クリップボードにコピーしました', 'success');
+            } catch (err) {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = type === 'input' ? currentInputData : currentOutputData;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showMessage('クリップボードにコピーしました', 'success');
+            }
+        }
+
+        // CSVダウンロード
+        function downloadCSV() {
+            window.location.href = '/api/download-output';
+            showMessage('ダウンロードを開始しました', 'success');
+        }
+
+        // メッセージ表示
+        function showMessage(message, type) {
+            const messageElement = document.getElementById('statusMessage');
+            messageElement.textContent = message;
+            messageElement.className = 'status-message ' + type;
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Excelデータ貼り付けダイアログを表示
+        function showPasteDialog() {
+            document.getElementById('pasteDialog').style.display = 'block';
+            document.getElementById('pasteArea').value = '';
+            document.getElementById('pasteArea').focus();
+        }
+
+        // ダイアログを閉じる
+        function closePasteDialog() {
+            document.getElementById('pasteDialog').style.display = 'none';
+        }
+
+        // 貼り付けられたデータを処理
+        function processPastedData() {
+            const pastedText = document.getElementById('pasteArea').value;
+            if (!pastedText) {
+                showMessage('データが入力されていません', 'error');
+                return;
+            }
+
+            const dataType = document.querySelector('input[name="dataType"]:checked').value;
+            let processedText;
+
+            if (dataType === 'subjects') {
+                // 教科データのみの場合、ヘッダーと既存のクラス情報を保持して教科部分だけ更新
+                const pastedLines = pastedText.split('\n').filter(line => line.trim());
+                const csvLines = originalInputData.split('\n');
+                
+                // ヘッダー2行を保持
+                const headers = csvLines.slice(0, 2);
+                
+                // 教科データを変換してクラス名と結合
+                const subjectLines = [];
+                let classIndex = 2; // ヘッダーの次から開始
+                
+                for (let i = 0; i < pastedLines.length; i++) {
+                    if (pastedLines[i].trim() === '') {
+                        // 空行はそのまま保持
+                        subjectLines.push('');
+                        classIndex++;
+                    } else {
+                        // タブ区切りをカンマに変換
+                        const subjects = pastedLines[i].split('\t');
+                        // 元のクラス名を取得
+                        const originalLine = csvLines[classIndex];
+                        if (originalLine) {
+                            const className = originalLine.split(',')[0];
+                            subjectLines.push(className + ',' + subjects.join(','));
+                        }
+                        classIndex++;
+                    }
+                }
+                
+                // 全体を結合
+                processedText = headers.concat(subjectLines).join('\n');
+            } else {
+                // 完全なデータの場合は通常の変換
+                processedText = processInputData(pastedText);
+            }
+            
+            // 変換したデータを適用
+            currentInputData = processedText;
+            
+            // 現在の表示モードに応じて更新
+            if (currentView === 'table') {
+                csvToEditableTable(currentInputData, 'inputTableView');
+            } else {
+                document.getElementById('inputTextView').value = currentInputData;
+            }
+            
+            // 変更フラグを立てる
+            if (currentInputData !== originalInputData) {
+                hasUnsavedChanges = true;
+                document.getElementById('saveIndicator').style.display = 'inline-block';
+            }
+            
+            // ダイアログを閉じる
+            closePasteDialog();
+            
+            showMessage('Excelデータを変換して適用しました', 'success');
+        }
+
+        // ダイアログの外側をクリックしたら閉じる
+        document.getElementById('pasteDialog').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePasteDialog();
+            }
+        });
+
+        // 教科データのみをコピー（タブ区切り）
+        function copySubjectsOnly() {
+            if (!currentOutputData) {
+                showMessage('コピーするデータがありません', 'error');
+                return;
+            }
+
+            const lines = currentOutputData.split('\n');
+            const subjectLines = [];
+            
+            // ヘッダー2行をスキップして、各クラスの教科データのみを抽出
+            for (let i = 2; i < lines.length; i++) {
+                if (lines[i].trim() === '') {
+                    // 空行はそのまま保持
+                    subjectLines.push('');
+                } else {
+                    const cells = lines[i].split(',');
+                    // 最初のセル（クラス名）をスキップして、教科データのみを取得
+                    const subjects = cells.slice(1);
+                    // タブ区切りに変換
+                    subjectLines.push(subjects.join('\t'));
+                }
+            }
+            
+            const subjectsData = subjectLines.join('\n');
+            
+            // クリップボードにコピー
+            navigator.clipboard.writeText(subjectsData).then(() => {
+                showMessage('教科データのみをタブ区切りでコピーしました（Excelに貼り付け可能）', 'success');
+            }).catch(err => {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = subjectsData;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showMessage('教科データのみをタブ区切りでコピーしました（Excelに貼り付け可能）', 'success');
+            });
+        }
+    </script>
+</body>
+</html>

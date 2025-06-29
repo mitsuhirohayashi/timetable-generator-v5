@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時間割作成ツール - 入出力インターフェース</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #555;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .primary-btn {
+            background-color: #007bff;
+            color: white;
+        }
+        .primary-btn:hover {
+            background-color: #0056b3;
+        }
+        .secondary-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+        .secondary-btn:hover {
+            background-color: #545b62;
+        }
+        .success-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .success-btn:hover {
+            background-color: #218838;
+        }
+        .danger-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .danger-btn:hover {
+            background-color: #c82333;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .table-container {
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .status-message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        .file-input-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .file-input-label:hover {
+            background-color: #0056b3;
+        }
+        #loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 8px;
+            z-index: 1000;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>時間割作成ツール - 入出力インターフェース</h1>
+    
+    <div class="container">
+        <div class="section">
+            <h2>入力データ (input.csv)</h2>
+            <div class="button-group">
+                <div class="file-input-wrapper">
+                    <label for="fileInput" class="file-input-label">CSVファイルを選択</label>
+                    <input type="file" id="fileInput" accept=".csv">
+                </div>
+                <button class="secondary-btn" onclick="pasteFromClipboard('input')">クリップボードから貼り付け</button>
+                <button class="secondary-btn" onclick="clearData('input')">クリア</button>
+                <button class="primary-btn" onclick="loadSampleData()">サンプルデータを読み込む</button>
+            </div>
+            <textarea id="inputData" placeholder="CSVデータをここに貼り付けるか、ファイルを選択してください"></textarea>
+            <div id="inputTable" class="table-container"></div>
+        </div>
+
+        <div class="section">
+            <h2>処理</h2>
+            <div class="button-group">
+                <button class="success-btn" onclick="runTimetableProgram()">時間割作成プログラムを実行</button>
+            </div>
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+
+        <div class="section">
+            <h2>出力データ (output.csv)</h2>
+            <div class="button-group">
+                <button class="primary-btn" onclick="copyToClipboard('output')">クリップボードにコピー</button>
+                <button class="primary-btn" onclick="downloadCSV()">CSVファイルをダウンロード</button>
+                <button class="secondary-btn" onclick="clearData('output')">クリア</button>
+            </div>
+            <textarea id="outputData" placeholder="処理結果がここに表示されます" readonly></textarea>
+            <div id="outputTable" class="table-container"></div>
+        </div>
+    </div>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>処理中...</div>
+    </div>
+
+    <script>
+        // CSVをテーブルに変換して表示
+        function csvToTable(csv, containerId) {
+            const lines = csv.trim().split('\n');
+            if (lines.length === 0) return;
+
+            let html = '<table>';
+            lines.forEach((line, index) => {
+                const cells = line.split(',');
+                if (index === 0) {
+                    html += '<thead><tr>';
+                    cells.forEach(cell => {
+                        html += `<th>${escapeHtml(cell)}</th>`;
+                    });
+                    html += '</tr></thead><tbody>';
+                } else {
+                    html += '<tr>';
+                    cells.forEach(cell => {
+                        html += `<td>${escapeHtml(cell)}</td>`;
+                    });
+                    html += '</tr>';
+                }
+            });
+            html += '</tbody></table>';
+            document.getElementById(containerId).innerHTML = html;
+        }
+
+        // HTMLエスケープ
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // ファイル読み込み
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    document.getElementById('inputData').value = content;
+                    csvToTable(content, 'inputTable');
+                    showMessage('ファイルが読み込まれました', 'success');
+                };
+                reader.readAsText(file, 'UTF-8');
+            }
+        });
+
+        // テキストエリアの変更を監視
+        document.getElementById('inputData').addEventListener('input', function() {
+            csvToTable(this.value, 'inputTable');
+        });
+
+        document.getElementById('outputData').addEventListener('input', function() {
+            csvToTable(this.value, 'outputTable');
+        });
+
+        // クリップボードから貼り付け
+        async function pasteFromClipboard(type) {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (type === 'input') {
+                    document.getElementById('inputData').value = text;
+                    csvToTable(text, 'inputTable');
+                    showMessage('クリップボードから貼り付けました', 'success');
+                }
+            } catch (err) {
+                showMessage('クリップボードへのアクセスが拒否されました', 'error');
+            }
+        }
+
+        // クリップボードにコピー
+        async function copyToClipboard(type) {
+            try {
+                const text = document.getElementById(type + 'Data').value;
+                await navigator.clipboard.writeText(text);
+                showMessage('クリップボードにコピーしました', 'success');
+            } catch (err) {
+                showMessage('コピーに失敗しました', 'error');
+            }
+        }
+
+        // データクリア
+        function clearData(type) {
+            document.getElementById(type + 'Data').value = '';
+            document.getElementById(type + 'Table').innerHTML = '';
+            showMessage(type === 'input' ? '入力データ' : '出力データ' + 'をクリアしました', 'info');
+        }
+
+        // CSVダウンロード
+        function downloadCSV() {
+            const content = document.getElementById('outputData').value;
+            if (!content) {
+                showMessage('ダウンロードするデータがありません', 'error');
+                return;
+            }
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'output.csv';
+            link.click();
+            showMessage('ファイルをダウンロードしました', 'success');
+        }
+
+        // サンプルデータ読み込み
+        function loadSampleData() {
+            const sampleData = `国,英,音,理,YT,英,理
+社,国,理,数,音,YT,保
+理,国,英,音,YT,社,国
+日生,国,自立,英,YT,国,保
+数,英,自立,YT,英,理,保
+英,国,理,自立,音,YT,社
+国,社,英,保,YT,数,総
+数,国,英,音,社,YT,理`;
+            document.getElementById('inputData').value = sampleData;
+            csvToTable(sampleData, 'inputTable');
+            showMessage('サンプルデータを読み込みました', 'success');
+        }
+
+        // メッセージ表示
+        function showMessage(message, type) {
+            const messageElement = document.getElementById('statusMessage');
+            messageElement.textContent = message;
+            messageElement.className = 'status-message ' + type;
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
+        }
+
+        // 時間割作成プログラムを実行
+        async function runTimetableProgram() {
+            const inputData = document.getElementById('inputData').value;
+            if (!inputData) {
+                showMessage('入力データがありません', 'error');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+
+            try {
+                const response = await fetch('/run-timetable', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ inputData: inputData })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('outputData').value = result.outputData;
+                    csvToTable(result.outputData, 'outputTable');
+                    showMessage('時間割作成が完了しました', 'success');
+                } else {
+                    showMessage('エラー: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('サーバーエラー: ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
